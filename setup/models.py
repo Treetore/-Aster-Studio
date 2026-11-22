@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -83,12 +84,29 @@ def download(ids: list[str], force: bool = False) -> dict:
         dest.parent.mkdir(parents=True, exist_ok=True)
         tmp = dest.with_suffix(dest.suffix + ".part")
         try:
-            with requests.get(url, stream=True, timeout=60) as r:
+            headers = {}
+            mode = "wb"
+            if tmp.is_file() and tmp.stat().st_size > 0:
+                headers["Range"] = f"bytes={tmp.stat().st_size}-"
+                mode = "ab"
+            with requests.get(url, headers=headers, stream=True, timeout=60) as r:
+                if r.status_code == 416:
+                    tmp.unlink(missing_ok=True)
+                    raise RuntimeError("resume range invalid; removed partial file")
                 r.raise_for_status()
-                with tmp.open("wb") as f:
+                with tmp.open(mode) as f:
                     for chunk in r.iter_content(1024 * 1024):
                         if chunk:
                             f.write(chunk)
+            expected = (m.get("sha256") or "").strip().lower()
+            if expected:
+                h = hashlib.sha256()
+                with tmp.open("rb") as f:
+                    for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                        h.update(chunk)
+                if h.hexdigest() != expected:
+                    tmp.unlink(missing_ok=True)
+                    raise RuntimeError("sha256 mismatch")
             tmp.replace(dest)
             out["downloaded"].append({"id": m["id"], "path": str(dest)})
         except Exception as exc:

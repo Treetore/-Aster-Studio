@@ -138,3 +138,7 @@ disclosure through the advisory once a fix is available.
 - GPU/host damage caused by overriding the resource guard thresholds.
 - Content policy questions about generated media; see `NOTICE` for model license
   obligations.
+
+## 远程 Web 访问
+
+远程访问时设置 `ASTER_WEB_TOKEN`。除本机回环地址与 `/login`、`/api/login`、`/api/health` 外，所有 Web 请求需要 `aster_token` Cookie 或 `X-Web-Token` 请求头；桥接接口继续使用独立 `COMFY_BRIDGE_TOKEN`。

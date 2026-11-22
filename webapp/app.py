@@ -266,9 +266,63 @@ def _bridge_log(msg: str) -> None:
         pass
 
 
+def _web_token() -> str:
+    token = (os.environ.get("ASTER_WEB_TOKEN") or "").strip()
+    if token:
+        return token
+    try:
+        return str((config.load_settings().get("web") or {}).get("token") or "").strip()
+    except Exception:
+        return ""
+
+
+def _request_ip(request) -> str:
+    return (request.headers.get("cf-connecting-ip")
+            or (request.headers.get("x-forwarded-for") or "").split(",")[0].strip()
+            or (request.client.host if request.client else ""))
+
+
+LOGIN_HTML = """<!doctype html><html lang="zh-CN"><meta charset="utf-8">
+<title>Aster Studio · 登录</title>
+<style>body{font-family:system-ui;background:#0f1424;color:#e8ecf8;display:grid;place-items:center;height:100vh;margin:0}
+form{background:#171e33;padding:28px;border-radius:14px;border:1px solid #2c3550;width:320px}
+input{width:100%;padding:10px;margin:10px 0;border-radius:8px;border:1px solid #2c3550;background:#0f1424;color:#fff}
+button{width:100%;padding:10px;border:0;border-radius:8px;background:#6c5ce7;color:#fff;font-weight:700}</style>
+<form method="post" action="/api/login"><h2>Aster Studio</h2><p>需要访问令牌</p>
+<input type="password" name="token" placeholder="访问令牌" autofocus><button>进入</button></form></html>"""
+
+
+@app.get("/login", response_class=HTMLResponse)
+def login_page() -> str:
+    return LOGIN_HTML
+
+
+class LoginReq(BaseModel):
+    token: str = ""
+
+
+@app.post("/api/login")
+def api_login(req: LoginReq, response: Response) -> dict:
+    expected = _web_token()
+    if expected and req.token != expected:
+        return {"ok": False, "error": "invalid token"}
+    response.set_cookie("aster_token", expected or "", httponly=True, samesite="lax", max_age=7 * 86400)
+    return {"ok": True}
+
+
 @app.middleware("http")
 async def ip_guard(request, call_next):
     """仅允许本机与白名单 IP（隧道场景读取 CF-Connecting-IP / X-Forwarded-For）。"""
+    token = _web_token()
+    ip = _request_ip(request)
+    if token and ip not in _LOCAL_IPS and not request.url.path.startswith("/api/bridge/"):
+        public = request.url.path in ("/login", "/api/login", "/api/health", "/favicon.ico")
+        if not public:
+            supplied = request.cookies.get("aster_token") or request.headers.get("x-web-token") or ""
+            if supplied != token:
+                if request.url.path.startswith("/api/"):
+                    return JSONResponse({"ok": False, "error": "web auth required"}, status_code=401)
+                return RedirectResponse("/login")
     allowed = _ip_allowlist()
     # 媒体下载走 token 校验，允许 NapCat 等容器直接下载（不依赖其出口 IP）
     if request.url.path.startswith("/api/bridge/media/"):
@@ -301,6 +355,11 @@ if _mcp_protocol is not None:
     @app.exception_handler(_mcp_protocol.ToolError)
     async def _tool_error_handler(_request, exc):  # type: ignore[no-untyped-def]
         return _JSONResponse(status_code=400, content={"ok": False, "error": str(exc)})
+
+
+@app.get("/api/health")
+def api_health() -> dict:
+    return {"ok": True, "service": "aster-studio", "time": time.strftime("%F %T")}
 
 
 @app.get("/api/status")
