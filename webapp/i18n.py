@@ -10,6 +10,9 @@ STRINGS = {
         "common.save": "保存", "common.cancel": "取消", "common.download": "下载",
         "setup.title": "首次启动", "setup.easy": "易懂版", "setup.pro": "专业版",
         "models.installed": "已安装", "models.missing": "未安装", "models.license": "许可",
+        "page.create": "创作视频", "page.image": "生图", "page.film": "长片",
+        "page.tasks": "任务控制台", "page.canvas": "节点画布", "page.gallery": "我的作品",
+        "page.models": "模型", "page.projects": "项目", "page.settings": "设置",
     },
     "en": {
         "app.title": "Aster Studio · Local AI Workspace",
@@ -19,6 +22,9 @@ STRINGS = {
         "common.save": "Save", "common.cancel": "Cancel", "common.download": "Download",
         "setup.title": "First Run", "setup.easy": "Easy", "setup.pro": "Professional",
         "models.installed": "Installed", "models.missing": "Not installed", "models.license": "License",
+        "page.create": "Create Video", "page.image": "Image", "page.film": "Film",
+        "page.tasks": "Task Console", "page.canvas": "Node Canvas", "page.gallery": "Gallery",
+        "page.models": "Models", "page.projects": "Projects", "page.settings": "Settings",
     },
 }
 

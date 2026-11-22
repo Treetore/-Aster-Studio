@@ -201,6 +201,25 @@ $('modelSearch')&&$('modelSearch').addEventListener('input',renderModels);
 $('modelFilter')&&$('modelFilter').addEventListener('change',renderModels);
 $('modelRefresh')&&($('modelRefresh').onclick=()=>loadModels());
 
+let PICK_PATH='';
+async function openProjectPicker(path){
+  PICK_PATH=path;
+  const box=$('projPickList');box.innerHTML='<div class="muted">加载中…</div>';
+  try{
+    const r=await api('/api/projects');PROJECTS=r.projects||[];
+    box.innerHTML=PROJECTS.length?PROJECTS.map(p=>'<button class="btn" style="display:block;width:100%;margin-bottom:6px;text-align:left" onclick="addPathToProject(\''+esc(p.id)+'\')">'+esc(p.name)+'</button>').join(''):'<div class="muted">暂无项目，请先在项目页创建</div>';
+    $('projPick').style.display='flex';
+  }catch(e){toast('项目加载失败')}
+}
+async function addPathToProject(pid){
+  if(!PICK_PATH)return;
+  try{
+    const r=await api('/api/projects/'+pid+'/items',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:PICK_PATH,kind:isImgPath(PICK_PATH)?'image':'video'})});
+    if(!r.ok)throw new Error('添加失败');
+    $('projPick').style.display='none';toast('已加入项目');
+  }catch(e){toast('加入失败：'+e.message)}
+}
+
 function reloadCanvas(){
   const f=$('comfyCanvas');
   if(!f){toast('画布尚未加载');return}
@@ -1185,6 +1204,7 @@ async function applyLang(lang){
   try{
     const r=await api('/api/i18n?lang='+encodeURIComponent(lang));
     document.title=r.strings['app.title']||document.title;
+    $$('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(r.strings[k])el.textContent=r.strings[k]});
     $$('.side .item').forEach(el=>{
       const key='nav.'+el.dataset.tab;const text=r.strings[key];
       if(text)el.innerHTML='<em>'+(NAV_ICONS[el.dataset.tab]||'·')+'</em>'+text;
