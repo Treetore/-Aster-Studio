@@ -6,7 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to semantic versioning for its public interface (HTTP API,
 MCP tool surface and CLI entry points).
 
-## [1.0.0] - 2026-11-22
+## [1.0.0]
+
+- 长片模块新增总时长设置，按 124 帧/段自动换算分段数；单段模式超时自动转分段。 - 2026-11-22
 
 First public source release of the local generation workbench. The project is a
 Windows-first, single-workstation deployment: a FastAPI workbench, an optional

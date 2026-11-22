@@ -606,11 +606,17 @@ async function startFilm(){
   const prompt=$('fprompt').value.trim();
   if(!prompt){toast('请先填写提示词');return}
   const [w,h]=$('fsize').value.split('x').map(Number);
+  const dur=parseFloat($('fdur')?.value||30);
+  if(isNaN(dur)||dur<5||dur>600){toast('总时长需在 5–600 秒之间');return}
+  const frames=124,segLen=frames/24;
+  const segments=Math.max(1,Math.ceil(dur/segLen));
+  let filmMode=$('fmode').value;
+  if(filmMode==='single'&&segments>1){filmMode='seg';toast('超过单段时长，已自动改用分段模式')}
   $('fstart').disabled=true;$('fmsg').textContent='提交中…';
   try{
     const r=await api('/api/film/start',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({prompt,refs:F.refs.map(x=>x.name),segments:parseInt($('fseg').value),
-        frames:124,width:w,height:h,steps:parseInt($('fsteps').value),mode:$('fmode').value})});
+      body:JSON.stringify({prompt,refs:F.refs.map(x=>x.name),segments,duration_s:dur,
+        frames,width:w,height:h,steps:parseInt($('fsteps').value),mode:filmMode})});
     if(!r.ok){$('fmsg').textContent='失败：'+(r.error||'未知');toast('启动失败');return}
     $('fmsg').textContent='已启动 '+r.tag;toast('长片任务已启动');
     pollFilm();clearInterval(F.timer);F.timer=setInterval(pollFilm,4000);
@@ -626,6 +632,14 @@ async function pollFilm(){
     if(d.ok&&d.state)renderFilm(d.state);
   }catch(e){}
 }
+function updateFilmDuration(){
+  const d=parseFloat($('fdur')?.value||30);const info=$('fdurInfo');
+  if(!info)return;
+  if(isNaN(d)||d<5){info.textContent='最低 5 秒';return}
+  info.textContent='≈'+Math.max(1,Math.ceil(d/(124/24)))+' 段 · 每段约 5.2s';
+}
+$('fdur')&&$('fdur').addEventListener('input',updateFilmDuration);
+updateFilmDuration();
 function renderFilm(st){
   const total=st.segments_total||1;
   const done=(st.segments_done||0)+(st.status==='done'?0:0);
@@ -1254,7 +1268,7 @@ async function updateFilmPill(){
     if(!r.ok||!r.state){$('filmPill').style.display='none';return}
     const s=r.state;
     const done=Object.values(s.segments||{}).filter(x=>x&&x.status==='completed').length;
-    let txt=done+'/8 段';
+    let txt=done+'/'+(s.segments_total||'?')+' 段';
     if(s.upscale){
       txt = s.upscale.ok ? '完成 · 4x 超分' : '60s 已拼 · 4x 超分失败';
     }else if(s.final&&s.final.ok){

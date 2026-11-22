@@ -885,7 +885,11 @@ SEG_FILM_LOG = Path(config.DATA_DIR).parent / "logs" / "segment_film_web.log"
 
 def _start_film_job(prompt: str, refs: list[str], segments: int, frames: int,
                     width: int, height: int, steps: int, mode: str = "seg",
-                    tag: str | None = None) -> dict:
+                    tag: str | None = None, duration_s: float | None = None) -> dict:
+    if duration_s is not None:
+        if duration_s < 5 or duration_s > 600:
+            return {"ok": False, "error": "duration_s must be between 5 and 600"}
+        segments = max(1, min(120, int(-(-duration_s // (frames / 24)))))
     st = _film_state()
     if st and st.get("status") in ("running", "concat"):
         return {"ok": False, "error": "已有长片任务在运行", "state": st}
@@ -917,6 +921,7 @@ class FilmStartReq(BaseModel):
     steps: int = 4
     mode: str = "seg"
     tag: str | None = None
+    duration_s: float | None = None
 
 
 def _film_state() -> dict | None:
@@ -929,7 +934,7 @@ def _film_state() -> dict | None:
 @app.post("/api/film/start")
 def api_film_start(req: FilmStartReq) -> dict:
     return _start_film_job(req.prompt, req.refs, req.segments, req.frames, req.width,
-                           req.height, req.steps, req.mode, req.tag)
+                           req.height, req.steps, req.mode, req.tag, req.duration_s)
 
 
 @app.get("/api/film/state")
