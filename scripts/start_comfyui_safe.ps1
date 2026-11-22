@@ -1,8 +1,8 @@
 # 安全启动 ComfyUI（便携版）
 # 用法：
-#   .\start_comfyui_safe.ps1                 # 前台启动
-#   .\start_comfyui_safe.ps1 -Guard          # 前台启动 + RAM 低于阈值时自动 /interrupt
-#   .\start_comfyui_safe.ps1 -Port 8189      # 换端口
+#   .\scripts/start_comfyui_safe.ps1                 # 前台启动
+#   .\scripts/start_comfyui_safe.ps1 -Guard          # 前台启动 + RAM 低于阈值时自动 /interrupt
+#   .\scripts/start_comfyui_safe.ps1 -Port 8189      # 换端口
 #
 # 为什么要这个脚本：
 #   1) 便携版在 GBK 控制台下遇到 emoji 日志（rgthree 的 🎉）会 UnicodeEncodeError 直接崩溃，
@@ -17,7 +17,8 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$App = 'K:\CONFI\mian\ComfyUI_windows_portable'
+$Root = Split-Path -Parent $PSScriptRoot
+$App = Join-Path (Split-Path -Parent $Root) 'mian\ComfyUI_windows_portable'
 $Python = Join-Path $App 'python_embeded\python.exe'
 $env:PYTHONUTF8 = '1'
 $env:PYTHONIOENCODING = 'utf-8'

@@ -62,7 +62,7 @@ fronting a separately installed ComfyUI instance.
 - **Cloudflare tunnel control** in the launcher and `tools/tunnel.ps1`
   (start/stop/status, quick or token mode).
 - **Release/legal documents**: `LICENSE` (Apache-2.0), `NOTICE`,
-  `SECURITY.md`, `CONTRIBUTING.md`, this changelog, `docs/RELEASE_CHECKLIST.md`
+  `SECURITY.md`, `CONTRIBUTING.md`, this changelog, `docs/release/RELEASE_CHECKLIST.md`
   and a GitHub Actions CI workflow.
 
 ### Changed

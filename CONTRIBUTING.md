@@ -94,7 +94,7 @@ defaults (`GuardPreflightTest::test_below_min_ram_blocks`,
 `TemplateFileTests::test_templates_validate_clean`,
 `test_three_template_files_load`, `ResolveTests::test_profiles`). CI excludes
 those test names (currently 174 tests pass, 7 are excluded), as recorded in
-`CHANGELOG.md` and `docs/RELEASE_CHECKLIST.md`. Fixing the code or the
+`CHANGELOG.md` and `docs/release/RELEASE_CHECKLIST.md`. Fixing the code or the
 expectation is welcome; until then, do not add new failures and do not widen the
 exclusion list without updating the changelog.
 
@@ -174,7 +174,7 @@ Workflow template:
 3. If the graph uses node classes absent from `tests/fixtures/object_info.json`,
    refresh that snapshot and explain why.
 4. Extend `tests/test_workflow.py` with resolution and validation coverage.
-5. Document parameters in `docs/WORKFLOWS.md`.
+5. Document parameters in `docs/architecture/WORKFLOWS.md`.
 
 Model catalog entry:
 

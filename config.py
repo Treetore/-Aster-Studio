@@ -290,7 +290,7 @@ DEFAULT_SETTINGS = {
         "stop_on_exit": False,
         # 备选启动参数：实测 8GB/32GB 机器第一次跑 H3 时，TE(14.6GB)+UNet(19.5GB)
         # 会同时驻留把空闲 RAM 打到 2GB 以下；lowmem 档位让 ComfyUI 更积极释放模型/缓存。
-        # 用 start(mode="lowmem") 或 comfy.ps1 start 选择。
+        # 用 start(mode="lowmem") 或 scripts/comfy.ps1 start 选择。
         "start_profiles": {
             "normal": [],
             "lowmem": [

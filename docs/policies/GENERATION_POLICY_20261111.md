@@ -1,6 +1,5 @@
 # 本地生成策略（2026-11-11 定稿）
 
-> 依据：两轮压力测试（[STRESS_TEST_1MIN_20261111.md](./STRESS_TEST_1MIN_20261111.md)）+ 两次 0x141 事故（[INCIDENT_20261111_1540_GPU_HANG.md](./INCIDENT_20261111_1540_GPU_HANG.md)）+ 参数调整（[RUNTIME_PARAMS_20261111.md](./RUNTIME_PARAMS_20261111.md)）。
 > 适用：RTX 4070 Laptop 8GB / 32GB RAM / ComfyUI 0.33.1 / MiniMax-H3。
 
 ## 1. 约束基线（实测）
@@ -111,7 +110,7 @@
 
 ## 11. 自动化（一条命令跑完整条流水线）
 
-新工具：`tools/auto_film.py`（双击版 `auto_film.bat`）。它把本策略的**检查、生成、监控、中止、重试、拼接、报告**全部自动完成：
+新工具：`tools/auto_film.py`（双击版 `scripts/auto_film.bat`）。它把本策略的**检查、生成、监控、中止、重试、拼接、报告**全部自动完成：
 
 ```powershell
 # 干跑：只做预检 + 解析参数，不生成

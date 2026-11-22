@@ -361,19 +361,19 @@ API prompt：
 - 支持 `first_frame`（图生图构图）、LoRA、模型覆盖；**禁 two_pass**（resolve 直接报错）；
 - 模板上限 39 帧（多帧仅取第 1 帧）；H3 训练区间 124–362，5 帧为最小合法静帧。
 
-完整参数/用法/实测见 **[WORKFLOW_H3_IMAGE.md](./WORKFLOW_H3_IMAGE.md)**。
+完整参数/用法/实测见 **[WORKFLOW_H3_IMAGE.md](../features/WORKFLOW_H3_IMAGE.md)**。
 
 
 ---
 
 ## 13. Qwen-Image 2.1 文生图模板（qwen_image，2026-11-15 新增）
 
-- **前置：ComfyUI 已升级到 v0.45.3**（v0.33.1 没有 Qwen-Image 2.1 节点）；代码/依赖备份见 `docs/WORKFLOW_QWEN_IMAGE21.md`。
+- **前置：ComfyUI 已升级到 v0.45.3**（v0.33.1 没有 Qwen-Image 2.1 节点）；代码/依赖备份见 `docs/features/WORKFLOW_QWEN_IMAGE21.md`。
 - 模型：`qwen_image_2.1_int8_convrot`（6.76GB）+ `qwen3vl_8b_int8_convrot`（TE, 8.71GB）+ `qwen_image_2.1_vae_bf16`（0.63GB）。
 - 链路：`UNETLoader → CLIPLoader(type=qwen_image) → TextEncodeQwenImage21 → EmptyLatentImage → SamplerCustomAdvanced(euler/simple,25 步) → VAEDecode → SaveImage`。
 - 默认 1024×1024、25 步；实测 **51 秒**出图（含加载），1024 PNG 约 1.7MB。
 - 支持 LoRA（可配 turbo 模型 5–8 步）、模型覆盖；不支持 two_pass / H3 optimize 补丁（会被忽略并 warning）。
-- 完整说明见 **[WORKFLOW_QWEN_IMAGE21.md](./WORKFLOW_QWEN_IMAGE21.md)**。
+- 完整说明见 **[WORKFLOW_QWEN_IMAGE21.md](../features/WORKFLOW_QWEN_IMAGE21.md)**。
 
 
 ---

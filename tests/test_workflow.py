@@ -623,7 +623,7 @@ class UIToAPITests(unittest.TestCase):
 
 class DocsTests(unittest.TestCase):
     def test_workflows_doc_exists_and_is_utf8(self):
-        path = os.path.join(PKG_DIR, "docs", "WORKFLOWS.md")
+        path = os.path.join(PKG_DIR, "docs", "architecture", "WORKFLOWS.md")
         self.assertTrue(os.path.isfile(path), path)
         with open(path, "r", encoding="utf-8") as f:
             content = f.read()

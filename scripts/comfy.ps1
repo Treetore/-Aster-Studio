@@ -17,8 +17,10 @@ param(
 
 $env:PYTHONUTF8 = '1'
 $env:PYTHONIOENCODING = 'utf-8'
-$Py = 'K:\CONFI\mian\ComfyUI_windows_portable\python_embeded\python.exe'
-$Server = 'K:\CONFI\comfy_mcp\server.py'
+$Root = Split-Path -Parent $PSScriptRoot
+$Py = Join-Path (Split-Path -Parent $Root) 'mian\ComfyUI_windows_portable\python_embeded\python.exe'
+if (-not (Test-Path $Py)) { $Py = 'python' }
+$Server = Join-Path $Root 'server.py'
 
 if ($Mode -eq 'list' -or $Tool -eq 'list') {
     & $Py $Server --list-tools

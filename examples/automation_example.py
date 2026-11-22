@@ -52,7 +52,7 @@ def main() -> int:
 
     settings, cli, store, guard = build()
     if not cli.is_up():
-        print("[!] ComfyUI 未运行：先执行 comfy.ps1 start 或 start_comfyui_safe.ps1")
+        print("[!] ComfyUI 未运行：先执行 scripts/comfy.ps1 start 或 scripts/start_comfyui_safe.ps1")
         return 2
 
     hw = safety.hardware()

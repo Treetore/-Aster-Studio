@@ -188,7 +188,9 @@ comfy_mcp/
   templates/         工作流 API 模板
   tests/             离线单元测试与固定数据集
   optional/          可选组件（默认不安装）
-  docs/              架构、工作流、优化与发布文档
+  docs/              分类文档（architecture / policies / features / integrations / release）
+scripts/           辅助脚本（长片、CLI、安全启动）
+PROJECT_STRUCTURE.md 目录结构与约定
   data/              运行数据（不纳入版本控制）
   logs/              日志（不纳入版本控制）
 ```
@@ -215,12 +217,12 @@ python -m pytest comfy_mcp/tests -q
 - [CONTRIBUTING.md](CONTRIBUTING.md)：开发环境、测试与提交约定
 - [SECURITY.md](SECURITY.md)：暴露面、令牌处理与漏洞报告
 - [CHANGELOG.md](CHANGELOG.md)：版本变更与已知限制
-- [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)：发布检查清单
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)：系统架构
-- [docs/WORKFLOWS.md](docs/WORKFLOWS.md)：工作流模板与参数
-- [docs/EDITING.md](docs/EDITING.md)：ffmpeg 后期处理
-- [docs/OPTIMIZATION.md](docs/OPTIMIZATION.md)：性能与显存优化
-- [docs/AUTO_VIDEO_POLICY_20261122.md](docs/AUTO_VIDEO_POLICY_20261122.md)：视频时长与分段策略
+- [docs/release/RELEASE_CHECKLIST.md](docs/release/RELEASE_CHECKLIST.md)：发布检查清单
+- [docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md)：系统架构
+- [docs/architecture/WORKFLOWS.md](docs/architecture/WORKFLOWS.md)：工作流模板与参数
+- [docs/features/EDITING.md](docs/features/EDITING.md)：ffmpeg 后期处理
+- [docs/architecture/OPTIMIZATION.md](docs/architecture/OPTIMIZATION.md)：性能与显存优化
+- [docs/policies/AUTO_VIDEO_POLICY_20261122.md](docs/policies/AUTO_VIDEO_POLICY_20261122.md)：视频时长与分段策略
 
 ## 许可
 

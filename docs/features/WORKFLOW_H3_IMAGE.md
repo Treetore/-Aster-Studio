@@ -99,4 +99,4 @@ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8190/api/generate -ContentT
 
 - 模板：`templates/minimax_h3_image.api.json`
 - 注册与解析：`workflow.py`（`TEMPLATES["minimax_h3_image"]`、`_TEMPLATE_PARAMETERS["minimax_h3_image"]`、`resolve()` 的 SaveImage 兼容与 two_pass 拦截）
-- 策略：`docs/GENERATION_POLICY_20261111.md`（分辨率/步数/显存规则同样适用）
+- 策略：`docs/policies/GENERATION_POLICY_20261111.md`（分辨率/步数/显存规则同样适用）
