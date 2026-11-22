@@ -522,6 +522,9 @@ class UIToAPITests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.object_info = load_object_info()
+        for name in ("video_minimax_h3_r2v.json", "VIDOH3.json"):
+            if not os.path.isfile(os.path.join(WORKFLOW_DIR, name)):
+                raise unittest.SkipTest("ComfyUI UI workflow fixtures not installed")
         cls.ui_r2v = load_ui_workflow("video_minimax_h3_r2v.json")
         cls.ui_fl2v = load_ui_workflow("VIDOH3.json")
 
