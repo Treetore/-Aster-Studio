@@ -29,3 +29,4 @@ docs/CONTEXT_HANDOFF*
 docs/INCIDENT*
 docs/GPU_LOST*
 webapp/_backup*
+!.env.example

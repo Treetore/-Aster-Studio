@@ -862,7 +862,7 @@ main{padding:20px 0 40px}
     <div class="card" style="max-width:640px;width:100%;border:1px solid #2c3550;box-shadow:0 24px 60px rgba(0,0,0,.5)">
       <h1 style="margin:0 0 6px">首次启动</h1>
       <div class="sub" style="margin:0 0 18px">请选择遇到问题时的提示方式，之后可在设置里切换。</div>
-      <div class="row" style="gap:14px;flex-wrap:wrap">
+      <div class="row" id="setupStep1" style="gap:14px;flex-wrap:wrap">
         <button class="btn primary mode-choice" style="flex:1;min-width:240px;padding:18px;text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:6px;white-space:normal;line-height:1.55;height:auto" data-style="easy">
           <b style="font-size:16px;display:block">易懂版</b>
           <span class="muted" style="font-size:12px">用白话说明哪里出了问题，并给出最简单的解决步骤</span>
@@ -873,6 +873,23 @@ main{padding:20px 0 40px}
         </button>
       </div>
       <div id="modeHint" class="muted" style="margin-top:14px;font-size:12px"></div>
+      <div id="setupStep2" class="hidden" style="margin-top:18px;border-top:1px solid #2c3550;padding-top:16px">
+        <div id="setupProfile" class="muted" style="font-size:12px;line-height:1.6;margin-bottom:10px"></div>
+        <label class="lab">主机模式</label>
+        <select id="setupMode" style="width:100%;margin-bottom:10px">
+          <option value="auto">自动（推荐）</option>
+          <option value="low_vram">低显存优先</option>
+          <option value="normal">标准</option>
+          <option value="high">高性能</option>
+        </select>
+        <label class="lab">需要使用的模型</label>
+        <div id="setupModels" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:220px;overflow:auto;margin:6px 0 10px"></div>
+        <div class="row" style="gap:8px">
+          <button class="btn primary" type="button" id="setupSave">保存并进入</button>
+          <button class="btn" type="button" id="setupDownload">下载所选</button>
+          <span class="muted" id="setupMsg" style="font-size:12px"></span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1030,14 +1047,32 @@ function setMode(m){S.mode=m;$$('.modes .m').forEach(el=>el.classList.toggle('on
 }
 $$('.modes .m').forEach(el=>el.onclick=()=>setMode(el.dataset.mode));
 /* ---------- 首次启动：提示方式 ---------- */
+let SETUP=null;
+function renderSetup(s){
+  SETUP=s;
+  $('setupStep1').classList.add('hidden');
+  const p=s.profile||{};
+  const gpu=(p.gpu||{}).name||'未检测到 NVIDIA GPU';
+  $('setupProfile').innerHTML='CPU '+(p.cpu_count||'?')+' 线程 · 内存 '+(p.ram_gb||'?')+'GB · 显存 '+
+    ((p.vram_total_mb||0)/1024).toFixed(1)+'GB<br>GPU：'+gpu+'<br>检测模式：'+(p.detected_mode||p.mode||'?')+
+    ' · 当前模式：'+(p.mode||'?');
+  $('setupMode').value=p.mode_override||'auto';
+  $('setupModels').innerHTML=(s.models||[]).map(m=>{
+    const checked=m.installed?'checked':'';
+    return '<label style="display:flex;gap:6px;align-items:flex-start;font-size:12px;padding:4px 0">'+
+      '<input type="checkbox" data-mid="'+esc(m.id)+'" '+checked+'>'+
+      '<span>'+esc(m.name)+'<br><span class="muted" style="font-size:10px">'+
+      (m.installed?'已安装':'未安装')+' · '+esc(m.target)+' · '+m.size_gb+'GB</span></span></label>';
+  }).join('')||'<div class="muted">模型目录为空</div>';
+  $('setupStep2').classList.remove('hidden');
+}
 async function initSetup(){
   try{
     const s=await api('/api/setup/status');
-    if(s.first_run){$('modeModal').style.display='flex';return}
-    if(s.doctor&&!s.doctor.ok){
-      const first=(s.doctor.issues||[])[0];
-      if(first)toast((s.doctor.style==='pro'?'自检：':'提示：')+first.message);
-    }
+    if(s.first_run||s.needs_setup){$('modeModal').style.display='flex';
+      if(!s.first_run)renderSetup(s);
+      return}
+    if(s.doctor&&!s.doctor.ok){const first=(s.doctor.issues||[])[0];if(first)toast(first.message)}
   }catch(e){}
 }
 $$('#modeModal [data-style]').forEach(b=>b.onclick=async()=>{
@@ -1045,10 +1080,36 @@ $$('#modeModal [data-style]').forEach(b=>b.onclick=async()=>{
   $('modeHint').textContent='保存中…';
   try{
     const r=await api('/api/setup/mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({style})});
-    if(r.ok){$('modeModal').style.display='none';toast(style==='easy'?'已选择易懂版':'已选择专业版')}
+    if(r.ok){const s=await api('/api/setup/status');renderSetup(s);toast(style==='easy'?'已选择易懂版':'已选择专业版')}
     else $('modeHint').textContent='保存失败：'+(r.error||'未知');
   }catch(e){$('modeHint').textContent='保存失败：'+e.message}
 });
+$('setupSave').onclick=async()=>{
+  const ids=$$('#setupModels input[data-mid]:checked').map(x=>x.dataset.mid);
+  const mode=$('setupMode').value;
+  $('setupMsg').textContent='保存中…';
+  try{
+    await api('/api/setup/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})});
+    await api('/api/setup/hostmode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode})});
+    $('modeModal').style.display='none';toast('设置已保存');
+  }catch(e){$('setupMsg').textContent='保存失败：'+e.message}
+};
+$('setupDownload').onclick=async()=>{
+  const ids=$$('#setupModels input[data-mid]:checked').map(x=>x.dataset.mid);
+  if(!ids.length){$('setupMsg').textContent='请先勾选模型';return}
+  $('setupMsg').textContent='下载已开始…';
+  try{
+    await api('/api/setup/download',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})});
+    const timer=setInterval(async()=>{
+      try{
+        const d=await api('/api/setup/download');
+        if(!d.running){clearInterval(timer);const res=d.result||{};const err=(res.errors||[])[0];
+          $('setupMsg').textContent=err?('失败：'+(err.error||'')):'下载完成';if(!err)setTimeout(()=>initSetup(),800);}
+        else $('setupMsg').textContent='下载中…';
+      }catch(e){clearInterval(timer);$('setupMsg').textContent='状态查询失败'}
+    },2000);
+  }catch(e){$('setupMsg').textContent='下载失败：'+e.message}
+};
 setTimeout(initSetup,300);
 
 /* ---------- 精简 / 专业 ---------- */

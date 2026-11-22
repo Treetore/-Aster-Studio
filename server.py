@@ -16,6 +16,7 @@
 """
 from __future__ import annotations
 
+import importlib
 import json
 import logging
 import os
@@ -482,7 +483,7 @@ class ComfyService:
             }
         job_id = resp.get("prompt_id") or prompt_id
         job_lock.bind(job_id)
-        proc_cleaner.start_for_job(job_id)
+        self._cleaner_start(job_id)
         self._watch_lock(job_id)
         model_policy.mark_done(template, str(resolved_pkg["resolved"].get("kind") or ""), params)
         record = {
@@ -527,13 +528,29 @@ class ComfyService:
     def _maybe_free_ram(self) -> None:
         """空闲且物理内存很低时卸载模型，避免下一次任务被 RAM 守卫打断。"""
         try:
-            hw = safety_mod.hardware()
+            hw = self._safety_mod.hardware()
             free = float(hw.get("ram_free_gb") or -1)
             if 0 <= free < 2.5:
                 self.client.free(unload_models=True, free_memory=True)
                 logger.warning("空闲 RAM %.2fGB 偏低，已卸载 ComfyUI 模型释放内存", free)
         except Exception as exc:  # noqa: BLE001
             logger.warning("空闲释放失败: %s", exc)
+
+    def _cleaner_start(self, job_id: str) -> None:
+        """启动进程清理线程，并把 job_id 作为 owned 标记（只登记，不杀进程）。"""
+        try:
+            info = proc_cleaner.start_for_job(job_id, job_id=job_id)
+            logger.debug("进程清理启动: %s", info)
+        except Exception as exc:  # noqa: BLE001 - 清理器故障不能影响生成
+            logger.warning("进程清理启动失败 %s: %s", job_id, exc)
+
+    def _cleaner_finish(self, job_id: str) -> None:
+        """任务收尾：停止清理线程，只强杀本项目登记的 encoder（幂等）。"""
+        try:
+            info = proc_cleaner.finish_job(job_id, job_id=job_id)
+            logger.debug("进程清理收尾: %s", info)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("进程清理收尾失败 %s: %s", job_id, exc)
 
     def _watch_lock(self, job_id: str) -> None:
         """后台等待任务结束并释放全局锁（即使没人轮询 job）。"""
@@ -544,11 +561,13 @@ class ComfyService:
                     remote = self._remote_job(job_id) or {}
                     status = remote.get("status") or ""
                     if status in ("completed", "failed", "cancelled"):
+                        self._cleaner_finish(job_id)
                         job_lock.release(job_id)
                         return
                 except Exception:
                     pass
                 time.sleep(5)
+            self._cleaner_finish(job_id)
             job_lock.release(job_id)
 
         try:
@@ -562,6 +581,7 @@ class ComfyService:
             self.store.update(job_id, guard_trip=reason, updated_at=_now_iso())
         except Exception:
             pass
+        self._cleaner_finish(job_id)
 
     def _apply_uploads(self, api: dict) -> list[dict]:
         """把 API 里 LoadImage 的本地绝对路径上传到 ComfyUI input，并替换成文件名。"""
@@ -653,6 +673,9 @@ class ComfyService:
             if local_status in ("completed", "failed", "cancelled"):
                 fields["finished_at"] = _now_iso()
                 job_lock.release(job_id)
+                previous_status = str((record or {}).get("status") or "")
+                if previous_status not in ("completed", "failed", "cancelled", "aborted"):
+                    self._cleaner_finish(job_id)
                 outputs = self._resolve_outputs(job_id)
                 fields["outputs"] = [
                     {"path": o["abs_path"], "size_mb": o["size_mb"], "type": o.get("type")}
@@ -763,6 +786,7 @@ class ComfyService:
             self.guard.stop_watch()
         except Exception:
             pass
+        self._cleaner_finish(job_id)
         job_lock.release(job_id)
         return {"ok": True, "cancel_response": resp, "job_id": job_id}
 
@@ -884,6 +908,27 @@ class ComfyService:
             self.guard = self._safety_mod.Guard(self.client, self.settings)
             return {"ok": True, "updated": True, "settings": self.settings, "path": config.SETTINGS_PATH}
         raise ToolError("action 只支持 get/set")
+
+    # -------------------------------------------------------------- self-check
+    @staticmethod
+    def _doctor_module():
+        """惰性导入 setup.doctor（MCP/CLI/webapp 三种加载方式都兼容）。"""
+        for name in ("setup.doctor", "comfy_mcp.setup.doctor"):
+            try:
+                return importlib.import_module(name)
+            except Exception:
+                continue
+        return None
+
+    def tool_selfcheck(self, force: bool = False, style: str | None = None) -> dict:
+        """环境自检：Python / ComfyUI / 资源 / ffmpeg / 模型 / 写权限 + 非阻塞告警。"""
+        doctor = self._doctor_module()
+        if doctor is None:
+            raise ToolError("自检模块不可用（setup/doctor.py 缺失）")
+        try:
+            return doctor.check(force=bool(force), style=style)
+        except Exception as exc:  # noqa: BLE001 - 体检失败也要给出可读错误
+            raise ToolError(f"自检执行失败: {type(exc).__name__}: {exc}")
 
     def tool_logs(self, kind: str = "mcp", tail: int = 120) -> dict:
         tail = max(10, min(int(tail), 1000))
@@ -1107,6 +1152,22 @@ def build_server() -> tuple[McpServer, ComfyService]:
     )(service.tool_probe_media)
 
     srv.tool(
+        "selfcheck",
+        "环境自检（不要求 ComfyUI 正在运行）：Python / ComfyUI main.py / web 资源 / ffmpeg / 已选模型 / data 写权限；"
+        "模板目录、torch+CUDA、8188 端口只做非阻塞告警。",
+        args_schema(
+            {
+                "force": {"type": "boolean", "default": False, "description": "跳过 20s 结果缓存"},
+                "style": {
+                    "type": "string",
+                    "enum": ["easy", "pro"],
+                    "description": "easy=大白话，pro=技术细节",
+                },
+            }
+        ),
+    )(service.tool_selfcheck)
+
+    srv.tool(
         "settings",
         "读取或修改 data/settings.json（守卫阈值、档位、ffmpeg 等）。",
         args_schema(
@@ -1168,6 +1229,11 @@ def _main(argv: list[str]) -> int:
         srv, service = build_server()
         print(json.dumps({"tools": srv.tool_names(), "log": LOG_PATH}, ensure_ascii=False, indent=2))
         print(json.dumps(service.tool_status(), ensure_ascii=False, indent=2, default=str))
+        try:
+            print(json.dumps(service.tool_selfcheck(), ensure_ascii=False, indent=2, default=str))
+        except Exception as exc:  # noqa: BLE001 - 自检失败不隐藏前面的输出
+            print(json.dumps({"ok": False, "selfcheck_error": f"{type(exc).__name__}: {exc}"},
+                             ensure_ascii=False, indent=2))
         return 0
     # 默认 stdio MCP
     srv, _ = build_server()

@@ -1,0 +1,141 @@
+{
+  "base_url": {
+    "description": "本机 ComfyUI 桥地址",
+    "type": "string",
+    "default": "http://127.0.0.1:8190",
+    "hint": "AstrBot 服务器能访问到的地址：同机填 http://127.0.0.1:8190；跨机填 http://<本机局域网IP>:8190；公网需 frp/tailscale 等隧道。"
+  },
+  "token": {
+    "description": "桥接令牌",
+    "type": "string",
+    "default": "",
+    "secret": true,
+    "hint": "本机 data/bridge_token.txt 里的内容；也可用环境变量 COMFY_BRIDGE_TOKEN 覆盖。"
+  },
+  "default_image_template": {
+    "description": "默认图像模型",
+    "type": "string",
+    "default": "moss_image",
+    "options": [
+      "moss_image",
+      "qwen_image",
+      "h3_image",
+      "moss_image_edit",
+      "qwen_image_edit"
+    ]
+  },
+  "default_video_template": {
+    "description": "默认视频模型",
+    "type": "string",
+    "default": "minimax_h3_t2v",
+    "options": [
+      "minimax_h3_t2v",
+      "minimax_h3_t2v_720p15s",
+      "minimax_h3_fl2v",
+      "minimax_h3_r2v"
+    ]
+  },
+  "image_size": {
+    "description": "默认图像尺寸（宽x高，留空用模型默认）",
+    "type": "string",
+    "default": "",
+    "hint": "形如 1024x1024；留空用模型默认；需 16 的倍数"
+  },
+  "video_size": {
+    "description": "默认视频尺寸（宽x高，留空用模型默认）",
+    "type": "string",
+    "default": "",
+    "hint": "形如 608x352 / 1280x736；留空用模型默认；建议 32 的倍数"
+  },
+  "steps": {
+    "description": "默认步数（0 = 用模型默认）",
+    "type": "int",
+    "default": 0,
+    "slider": {
+      "min": 0,
+      "max": 50,
+      "step": 1
+    },
+    "hint": "0 = 用模型默认；MOSS/Qwen 25，H3 视频 8，长片 4"
+  },
+  "cfg": {
+    "description": "默认 CFG（0 = 用模型默认）",
+    "type": "float",
+    "default": 0.0,
+    "slider": {
+      "min": 0,
+      "max": 10,
+      "step": 0.1
+    },
+    "hint": "0 = 用模型默认；MOSS 2.5，MOSS 编辑 4.0，H3 通常 1"
+  },
+  "duration_s": {
+    "description": "默认视频时长（秒，0 = 用模型默认）",
+    "type": "float",
+    "default": 5.0,
+    "slider": {
+      "min": 0,
+      "max": 20,
+      "step": 0.5
+    },
+    "hint": "0 = 用模型默认；H3 默认 5 秒，720p15s 用 15"
+  },
+  "image_timeout_s": {
+    "description": "图像请求超时（秒）",
+    "type": "int",
+    "default": 300,
+    "slider": {
+      "min": 30,
+      "max": 1800,
+      "step": 30
+    },
+    "hint": "MOSS/Qwen 通常 30–60 秒；首次加载模型更久"
+  },
+  "video_timeout_s": {
+    "description": "视频请求超时（秒）",
+    "type": "int",
+    "default": 1800,
+    "slider": {
+      "min": 60,
+      "max": 3600,
+      "step": 60
+    },
+    "hint": "5 秒视频约 2–6 分钟；720p 15s 约 40–60 分钟，按需调大"
+  },
+  "send_progress": {
+    "description": "生成前先回一条进度提示",
+    "type": "bool",
+    "default": true,
+    "hint": "生成前先回一条“已提交”的提示，避免用户以为没反应"
+  },
+  "max_prompt_chars": {
+    "description": "提示词最大长度",
+    "type": "int",
+    "default": 2000,
+    "slider": {
+      "min": 100,
+      "max": 8000,
+      "step": 100
+    }
+  },
+  "cache_max_age_hours": {
+    "description": "媒体缓存保留小时数（默认每天清理）",
+    "type": "int",
+    "default": 24,
+    "slider": {
+      "min": 1,
+      "max": 720,
+      "step": 1
+    }
+  },
+  "cache_cleanup_interval_hours": {
+    "description": "后台清理检查间隔（小时）",
+    "type": "int",
+    "default": 6,
+    "slider": {
+      "min": 1,
+      "max": 72,
+      "step": 1
+    }
+  }
+}

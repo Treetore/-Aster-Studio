@@ -1,4 +1,19 @@
-﻿fastapi>=0.110
+# Aster Studio - runtime dependencies (Web UI / MCP server side)
+#
+# Install:
+#   python -m pip install -r requirements.txt
+#
+# Notes:
+#   * torch / torchvision, ComfyUI custom nodes and their dependencies are NOT
+#     installed here. They ship with the ComfyUI portable build
+#     (<portable>/python_embeded). Install this file with that interpreter if the
+#     Web UI and ComfyUI must share one environment.
+#   * Versions are lower bounds only on purpose, so the file stays installable on
+#     machines without a matching prebuilt wheel for a pinned release.
+#   * ffmpeg / ffprobe are external binaries, not Python packages: put them on
+#     PATH or point FFMPEG_PATH at them (see .env.example).
+
+fastapi>=0.110
 uvicorn[standard]>=0.27
 requests>=2.31
 psutil>=5.9

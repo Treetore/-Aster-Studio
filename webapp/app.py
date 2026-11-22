@@ -547,7 +547,10 @@ def api_setup_status() -> dict:
     chk = selfcheck.check() if selfcheck else {"ok": False, "issues": []}
     return {"ok": True, "first_run": selfcheck.first_run() if selfcheck else False,
             "style": selfcheck.get_style() if selfcheck else "easy",
-            "profile": system_profile.detect(), "doctor": chk, "models": models}
+            "profile": system_profile.detect(), "doctor": chk, "models": models,
+            "needs_setup": (not bool(selfcheck.selected_models())
+                             and not (Path(config.DATA_DIR) / "setup_complete.json").is_file())
+                            if selfcheck else True}
 
 
 class SetupModeReq(BaseModel):
@@ -559,6 +562,66 @@ def api_setup_mode(req: SetupModeReq) -> dict:
     if selfcheck is None:
         return {"ok": False, "error": "self-check module missing"}
     return {"ok": True, "style": selfcheck.set_style(req.style)}
+
+
+SETUP_DOWNLOAD: dict = {"running": False, "result": None, "started": None}
+
+
+class SetupModelsReq(BaseModel):
+    ids: list[str] = []
+
+
+class SetupHostReq(BaseModel):
+    mode: str = "auto"
+
+
+@app.post("/api/setup/models")
+def api_setup_models(req: SetupModelsReq) -> dict:
+    try:
+        from setup import models as model_catalog
+        model_catalog.save_selected(req.ids)
+        (Path(config.DATA_DIR) / "setup_complete.json").write_text("1", encoding="utf-8")
+        return {"ok": True, "ids": req.ids}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": str(exc)}
+
+
+@app.post("/api/setup/hostmode")
+def api_setup_hostmode(req: SetupHostReq) -> dict:
+    try:
+        import system_profile
+        mode = system_profile.set_mode_override(req.mode)
+        return {"ok": True, "mode": mode, "profile": system_profile.detect()}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": str(exc)}
+
+
+@app.post("/api/setup/download")
+def api_setup_download(req: SetupModelsReq) -> dict:
+    if SETUP_DOWNLOAD.get("running"):
+        return {"ok": False, "error": "download already running"}
+    try:
+        from setup import models as model_catalog
+        model_catalog.save_selected(req.ids)
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": str(exc)}
+
+    def worker(ids: list[str]) -> None:
+        SETUP_DOWNLOAD.update({"running": True, "result": None, "started": time.strftime("%F %T")})
+        try:
+            SETUP_DOWNLOAD["result"] = model_catalog.download(ids)
+        except Exception as exc:  # noqa: BLE001
+            SETUP_DOWNLOAD["result"] = {"ok": False, "errors": [{"error": str(exc)}]}
+        finally:
+            SETUP_DOWNLOAD["running"] = False
+
+    threading.Thread(target=worker, args=(list(req.ids),), daemon=True).start()
+    return {"ok": True, "started": True, "ids": req.ids}
+
+
+@app.get("/api/setup/download")
+def api_setup_download_status() -> dict:
+    return {"ok": True, **SETUP_DOWNLOAD}
 
 
 @app.get("/api/settings")

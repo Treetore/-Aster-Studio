@@ -18,9 +18,12 @@ from __future__ import annotations
 
 import ctypes
 import inspect
+import json
 import os
 import shutil
+import socket
 import subprocess
+import sys
 import threading
 import time
 from typing import Any, Callable
@@ -55,6 +58,12 @@ VRAM_WARN_HITS = 3
 SYS_FAIL_HITS = 3
 TRIP_RAM_MIN = 2.5
 MIN_RAM_DEFAULT = 6.0
+
+# 自检（setup.doctor 复用）：最低 Python、torch 探测超时与缓存
+MIN_PYTHON = (3, 10)
+TORCH_PROBE_TIMEOUT = 30.0
+TORCH_CACHE_TTL_S = 120.0
+COMFY_PORT = 8188
 
 _RISK_ORDER = {"low": 0, "medium": 1, "high": 2}
 
@@ -224,6 +233,157 @@ def hardware() -> dict:
             "memory_api_ok": mem is not None,
             "disk_ok": disk is not None,
             "os": os.name,
+        },
+    }
+
+
+# ------------------------------------------------------------------ 环境自检探测
+def python_supported(version: Any = None) -> bool:
+    """Python 版本是否达到 :data:`MIN_PYTHON`；``version`` 传 ``(3, 12, 4)`` 之类。"""
+    value = tuple(sys.version_info)[:2] if version is None else version
+    try:
+        parts = tuple(int(part) for part in tuple(value)[:2])
+    except (TypeError, ValueError):
+        return False
+    return len(parts) == 2 and parts >= MIN_PYTHON
+
+
+def comfy_python() -> str:
+    """ComfyUI 使用的 Python 解释器（设置环境变量 > config.COMFY_PYTHON > 当前解释器）。"""
+    candidates: list[str] = []
+    env = os.environ.get("COMFY_MCP_PYTHON")
+    if env:
+        candidates.append(env)
+    configured = getattr(_config, "COMFY_PYTHON", None) if _config is not None else None
+    if configured:
+        candidates.append(str(configured))
+    candidates.append(sys.executable)
+    for candidate in candidates:
+        try:
+            if candidate and os.path.isfile(candidate):
+                return candidate
+        except OSError:  # pragma: no cover - 极端路径
+            continue
+    return sys.executable
+
+
+_TORCH_PROBE_CODE = r"""
+import json
+result = {"torch": False, "torch_version": None, "cuda": False,
+          "cuda_version": None, "device": None}
+try:
+    import torch
+    result["torch"] = True
+    result["torch_version"] = str(getattr(torch, "__version__", "") or "")
+    try:
+        result["cuda"] = bool(torch.cuda.is_available())
+        if result["cuda"]:
+            result["cuda_version"] = str(getattr(torch.version, "cuda", "") or "")
+            try:
+                result["device"] = str(torch.cuda.get_device_name(0))
+            except Exception:
+                result["device"] = None
+    except Exception as exc:
+        result["cuda_error"] = "%s: %s" % (type(exc).__name__, exc)
+except Exception as exc:
+    result["error"] = "%s: %s" % (type(exc).__name__, exc)
+print(json.dumps(result))
+"""
+
+_torch_cache: dict = {"key": None, "at": 0.0, "value": None}
+
+
+def _blank_torch_info(error: str = "") -> dict:
+    return {"torch": False, "cuda": False, "torch_version": None, "cuda_version": None,
+            "device": None, "error": error or None}
+
+
+def probe_torch(python_exe: str | None = None, timeout: float = TORCH_PROBE_TIMEOUT,
+                use_cache: bool = False) -> dict:
+    """在目标解释器里探测 ``import torch`` / CUDA；任何失败都返回结构化结果，绝不抛异常。
+
+    用子进程而不是直接 ``import torch``：doctor 自己跑在 launcher 的 Python 上，
+    而 torch 装在 ComfyUI 的嵌入式 Python 里，直接 import 会误判。
+    """
+    exe = str(python_exe or comfy_python())
+    key = (exe, float(timeout))
+    now = time.time()
+    if use_cache:
+        cached = _torch_cache.get("value")
+        if cached is not None and _torch_cache.get("key") == key and \
+                now - float(_torch_cache.get("at") or 0.0) < TORCH_CACHE_TTL_S:
+            return dict(cached)
+    env = dict(os.environ)
+    env.setdefault("PYTHONIOENCODING", "utf-8")
+    env.setdefault("PYTHONUTF8", "1")
+    try:
+        proc = subprocess.run(
+            [exe, "-c", _TORCH_PROBE_CODE],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=max(1.0, float(timeout)),
+            creationflags=_CREATE_NO_WINDOW,
+            env=env,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        return _blank_torch_info(f"{type(exc).__name__}: {exc}")
+    info = _blank_torch_info()
+    payload = None
+    for line in reversed((proc.stdout or "").strip().splitlines()):
+        line = line.strip()
+        if line.startswith("{") and line.endswith("}"):
+            try:
+                payload = json.loads(line)
+            except ValueError:
+                payload = None
+            if isinstance(payload, dict):
+                break
+    if isinstance(payload, dict):
+        info.update({key: payload.get(key) for key in info if key in payload})
+        info["torch"] = bool(payload.get("torch"))
+        info["cuda"] = bool(payload.get("cuda"))
+        if payload.get("error"):
+            info["error"] = str(payload.get("error"))[:300]
+    elif proc.returncode != 0:
+        tail = (proc.stderr or proc.stdout or "").strip().splitlines()
+        info["error"] = (tail[-1] if tail else f"probe exit {proc.returncode}")[:300]
+    else:
+        info["error"] = "probe returned no JSON"
+    if use_cache:
+        _torch_cache.update({"key": key, "at": now, "value": dict(info)})
+    return info
+
+
+def port_open(host: str = "127.0.0.1", port: int = COMFY_PORT,
+              timeout: float = 0.25) -> bool:
+    """TCP 端口是否可连（只读探测；失败一律返回 ``False``）。"""
+    try:
+        with socket.create_connection((str(host), int(port)), timeout=max(0.05, float(timeout))):
+            return True
+    except (OSError, ValueError):
+        return False
+
+
+def selfcheck(python_exe: str | None = None, host: str = "127.0.0.1",
+              port: int = COMFY_PORT, timeout: float = 0.25,
+              use_cache: bool = True) -> dict:
+    """聚合自检：Python 版本 / torch+CUDA / ComfyUI 端口。只读、不抛异常。"""
+    version = tuple(sys.version_info)[:3]
+    torch_info = probe_torch(python_exe, use_cache=use_cache)
+    return {
+        "python": {
+            "version": ".".join(str(part) for part in version),
+            "supported": python_supported(version),
+            "executable": sys.executable,
+            "comfy_python": str(python_exe or comfy_python()),
+        },
+        "torch": torch_info,
+        "comfy_port": {
+            "host": str(host),
+            "port": int(port),
+            "open": port_open(host, port, timeout),
         },
     }
 

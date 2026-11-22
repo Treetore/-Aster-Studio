@@ -1484,5 +1484,52 @@
   "output_node": false,
   "python_module": "nodes",
   "search_aliases": []
+ },
+ "ImageFromBatch": {
+  "input": {
+   "required": {
+    "image": [
+     "IMAGE"
+    ],
+    "batch_index": [
+     "INT",
+     {}
+    ],
+    "length": [
+     "INT",
+     {}
+    ]
+   }
+  },
+  "output": [
+   "IMAGE"
+  ],
+  "output_name": [
+   "IMAGE"
+  ],
+  "name": "ImageFromBatch",
+  "display_name": "Image From Batch",
+  "category": "image",
+  "description": ""
+ },
+ "SaveImage": {
+  "input": {
+   "required": {
+    "images": [
+     "IMAGE"
+    ],
+    "filename_prefix": [
+     "STRING",
+     {}
+    ]
+   }
+  },
+  "output": [],
+  "output_name": [],
+  "name": "SaveImage",
+  "display_name": "Save Image",
+  "category": "image",
+  "description": "",
+  "output_node": true
  }
 }

@@ -43,6 +43,30 @@ def status() -> list[dict]:
     return [{**m, "installed": installed(m)} for m in load()]
 
 
+def _resolve_hf_url(m: dict) -> str:
+    """当 url 为空时，尝试在 HuggingFace 公共模型中查找同名文件。"""
+    filename = m.get("file") or ""
+    if not filename:
+        return ""
+    try:
+        r = requests.get("https://huggingface.co/api/models",
+                         params={"search": filename.rsplit(".", 1)[0], "limit": 8}, timeout=20)
+        r.raise_for_status()
+        for item in r.json() or []:
+            repo_id = item.get("id")
+            if not repo_id:
+                continue
+            info = requests.get(f"https://huggingface.co/api/models/{repo_id}", timeout=20)
+            if info.status_code != 200:
+                continue
+            for sib in info.json().get("siblings") or []:
+                if sib.get("rfilename") == filename:
+                    return f"https://huggingface.co/{repo_id}/resolve/main/{filename}"
+    except Exception:
+        return ""
+    return ""
+
+
 def download(ids: list[str], force: bool = False) -> dict:
     out = {"ok": True, "downloaded": [], "errors": []}
     for m in load():
@@ -52,7 +76,7 @@ def download(ids: list[str], force: bool = False) -> dict:
         if dest.is_file() and not force:
             out["downloaded"].append({"id": m["id"], "skipped": True})
             continue
-        url = (m.get("url") or "").strip()
+        url = (m.get("url") or "").strip() or _resolve_hf_url(m)
         if not url:
             out["errors"].append({"id": m["id"], "error": "未配置 url，请编辑 setup/models.json 或手动放入目录"})
             continue

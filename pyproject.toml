@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aster-studio"
+version = "1.0.0"
+description = "Aster Studio - local ComfyUI (MiniMax H3 video) workspace with Web UI, desktop launcher and MCP tools"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Aster Studio" }]
+keywords = ["comfyui", "mcp", "text-to-video", "fastapi", "ffmpeg"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Framework :: FastAPI",
+]
+
+# 与 requirements.txt 保持一致（宽松下界，避免锁定在本机不可用的构建上）。
+# 说明：torch / torchvision 以及 ComfyUI 自身的节点依赖由 ComfyUI 便携版提供，
+# 不在此声明，避免把数 GB 的 CUDA wheel 拉进本项目环境。
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "requests>=2.31",
+    "psutil>=5.9",
+    "pydantic>=2.6",
+    "python-multipart>=0.0.9",
+    "aiohttp>=3.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+]
+
+[project.urls]
+Homepage = "https://example.invalid/aster-studio"
+
+# 项目为「顶层模块 + 若干包」的扁平布局，编辑安装时显式声明映射。
+[tool.setuptools]
+py-modules = [
+    "config",
+    "client",
+    "editing",
+    "job_lock",
+    "jobs",
+    "mcp_protocol",
+    "model_policy",
+    "proc_cleaner",
+    "safety",
+    "server",
+    "system_profile",
+    "workflow",
+]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["webapp*", "setup*", "launcher*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

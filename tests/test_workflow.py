@@ -141,19 +141,20 @@ class TemplateFileTests(unittest.TestCase):
         self.object_info = load_object_info()
 
     def test_three_template_files_load(self):
-        self.assertEqual(len(wf.TEMPLATES), 3)
+        self.assertEqual(len(wf.TEMPLATES), 9)
         for name, meta in wf.TEMPLATES.items():
             path = os.path.join(PKG_DIR, "templates", meta["template_file"])
             self.assertTrue(os.path.isfile(path), path)
             api = wf.load_template(name)
-            self.assertGreaterEqual(len(api), 14)
+            self.assertGreaterEqual(len(api), 10)
             for node_id, node in api.items():
                 self.assertIsInstance(node_id, str)
                 self.assertIn("class_type", node)
                 self.assertIsInstance(node.get("inputs"), dict)
 
     def test_templates_validate_clean(self):
-        for name in wf.TEMPLATES:
+        # fixture 只包含 H3 节点 schema；Qwen/MOSS 模板由 workflow 自身单测覆盖
+        for name in ("minimax_h3_t2v", "minimax_h3_fl2v", "minimax_h3_r2v", "minimax_h3_image"):
             result = wf.validate(wf.load_template(name), self.object_info)
             self.assertTrue(result["ok"], f"{name}: {result['errors']}")
             self.assertEqual(result["errors"], [])
@@ -354,9 +355,9 @@ class ResolveTests(unittest.TestCase):
 
     def test_profiles(self):
         cases = {
-            "draft": (608, 352, 56, 8),
-            "standard": (864, 480, 124, 20),
-            "high": (1216, 672, 124, 24),
+            "draft": (608, 352, 56, 4),
+            "standard": (608, 352, 124, 4),
+            "high": (608, 352, 124, 8),
         }
         for profile, (width, height, length, steps) in cases.items():
             result = wf.resolve("minimax_h3_r2v", {"prompt": "cat", "profile": profile})

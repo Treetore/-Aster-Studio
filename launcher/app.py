@@ -25,17 +25,25 @@ from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
 
-ROOT = Path(r"K:\CONFI\comfy_mcp")
-APP_DIR = Path(r"K:\CONFI\mian\ComfyUI_windows_portable")
-PY = APP_DIR / "python_embeded" / "python.exe"
-COMFY_DIR = APP_DIR / "ComfyUI"
+ROOT = Path(__file__).resolve().parent.parent
+try:
+    import config as _cfg
+    APP_DIR = Path(_cfg.COMFY_PORTABLE_ROOT)
+    COMFY_DIR = Path(_cfg.COMFY_ROOT)
+    PY = Path(_cfg.COMFY_PYTHON)
+    COMFY_URL = str(_cfg.COMFY_URL)
+except Exception:  # noqa: BLE001
+    APP_DIR = ROOT.parent / "mian" / "ComfyUI_windows_portable"
+    COMFY_DIR = APP_DIR / "ComfyUI"
+    PY = APP_DIR / "python_embeded" / "python.exe"
+    COMFY_URL = "http://127.0.0.1:8188"
 LOGS = ROOT / "logs"
 DATA = ROOT / "data"
 SETTINGS = DATA / "settings.json"
 BACKUPS = ROOT / "backups"
 MODEL_ROOT = COMFY_DIR / "models"
-COMFY_URL = "http://127.0.0.1:8188"
-WEB_URL = "http://127.0.0.1:8190"
+WEB_PORT = int(os.environ.get("WEB_PORT", "8190"))
+WEB_URL = os.environ.get("ASTER_WEB_URL", f"http://127.0.0.1:{WEB_PORT}")
 LAUNCHER_PORT = int(os.environ.get("LAUNCHER_PORT", "8191"))
 CREATE_NO_WINDOW = 0x08000000
 NEW_GROUP = 0x00000200
@@ -155,7 +163,7 @@ def hw_state() -> dict:
     except Exception:
         gpu = {}
     vm = psutil.virtual_memory()
-    disk = shutil.disk_usage("K:\\")
+    disk = shutil.disk_usage(str(ROOT.anchor or ROOT))
     return {
         "gpu": gpu,
         "ram_total_gb": round(vm.total / 2**30, 1),
@@ -270,8 +278,8 @@ def start_comfy(mode: str | None = None, wait: bool = True) -> dict:
 
 def start_web(wait: bool = True) -> dict:
     if web_state()["up"]:
-        return {"ok": True, "already": True, "pid": port_owner(8190)}
-    pid = spawn([str(PY), "-m", "uvicorn", "webapp.app:app", "--host", "127.0.0.1", "--port", "8190"],
+        return {"ok": True, "already": True, "pid": port_owner(WEB_PORT)}
+    pid = spawn([str(PY), "-m", "uvicorn", "webapp.app:app", "--host", "127.0.0.1", "--port", str(WEB_PORT)],
                 ROOT, "webapp_stdout.log", "webapp_stderr.log")
     ok = wait_http(f"{WEB_URL}/api/status", 60) if wait else True
     return {"ok": ok, "pid": pid}

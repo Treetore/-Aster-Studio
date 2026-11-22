@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import threading
@@ -17,16 +18,64 @@ from pathlib import Path
 
 import requests
 
-ROOT = Path(r"K:\CONFI\comfy_mcp")
+ROOT = Path(__file__).resolve().parent.parent  # 项目根目录，从本文件位置推导
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+
+def _load_env() -> None:
+    """读取项目根 .env（复用 config 的无依赖解析器），失败不影响启动。"""
+    try:
+        import config as _cfg
+
+        _cfg.load_env_file(ROOT / ".env")
+    except Exception:  # pragma: no cover - 仅在 config 缺失/损坏时
+        pass
+
+
+_load_env()
+
 PORT = int(os.environ.get("LAUNCHER_PORT", "8191"))
 URL = f"http://127.0.0.1:{PORT}/"
-BROWSERS = [
-    r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-    r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
-    r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-    r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-]
 PROFILE = ROOT / "data" / "launcher_profile"
+
+
+def _browser_candidates() -> list[str]:
+    """浏览器可执行文件候选：环境变量 > Windows 常见安装位置 > macOS/Linux 常见位置。"""
+    found: list[str] = []
+    env_exe = os.environ.get("LAUNCHER_BROWSER")
+    if env_exe:
+        found.append(env_exe)
+    if os.name == "nt":
+        for base in (
+            os.environ.get("ProgramFiles(x86)"),
+            os.environ.get("ProgramFiles"),
+            os.environ.get("LOCALAPPDATA"),
+        ):
+            if not base:
+                continue
+            for rel in (
+                ("Microsoft", "Edge", "Application", "msedge.exe"),
+                ("Google", "Chrome", "Application", "chrome.exe"),
+            ):
+                found.append(str(Path(base).joinpath(*rel)))
+    else:
+        found.extend([
+            "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+            "/Applications/Chromium.app/Contents/MacOS/Chromium",
+        ])
+        for name in ("microsoft-edge", "google-chrome", "chromium", "chromium-browser"):
+            exe = shutil.which(name)
+            if exe:
+                found.append(exe)
+    seen: set[str] = set()
+    out: list[str] = []
+    for item in found:
+        if item and item not in seen:
+            seen.add(item)
+            out.append(item)
+    return out
 
 
 def _ensure_streams() -> None:
@@ -68,7 +117,7 @@ def wait_ready(timeout: float = 20.0) -> bool:
 
 
 def open_window() -> subprocess.Popen | None:
-    for exe in BROWSERS:
+    for exe in _browser_candidates():
         if not Path(exe).is_file():
             continue
         PROFILE.mkdir(parents=True, exist_ok=True)

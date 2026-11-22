@@ -1,0 +1,25 @@
+name: astrbot_plugin_comfy_bridge
+display_name: 本机生图桥
+desc: 把聊天提示词转发到本机 ComfyUI（MOSS / Qwen / H3），回传图像或视频；支持查询可用模型与参数。
+short_desc: 聊天生图/生视频，算力留在本机。
+version: v1.7.1
+author: YG
+repo: ""
+astrbot_version: ">=4.16"
+support_platforms:
+  - aiocqhttp
+  - qq_official
+  - qq_official_webhook
+  - telegram
+  - lark
+  - dingtalk
+  - discord
+  - slack
+  - kook
+  - satori
+  - wecom
+  - wecom_ai_bot
+  - weixin_oc
+  - matrix
+  - mattermost
+

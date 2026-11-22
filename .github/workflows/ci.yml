@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+  PYTHONDONTWRITEBYTECODE: "1"
+
+jobs:
+  offline-checks:
+    name: Offline tests (windows-latest, Python 3.12)
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # The package is imported as `comfy_mcp`, so the checkout lives in a
+          # directory with that name and pytest runs from the workspace root.
+          path: comfy_mcp
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: comfy_mcp/requirements.txt
+
+      - name: Install dependencies
+        working-directory: comfy_mcp
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install "pytest>=8"
+
+      - name: Byte-compile all Python sources
+        working-directory: comfy_mcp
+        run: python -m compileall -q -x "data|logs|artifacts|backups|dist|bundle" .
+
+      - name: Reject tracked model weights, media and secrets
+        working-directory: comfy_mcp
+        shell: pwsh
+        run: |
+          $tracked = git ls-files
+          $binary = $tracked | Where-Object { $_ -match '\.(safetensors|ckpt|pt|pth|bin|gguf|mp4|webm|mov)$' }
+          $secrets = $tracked | Where-Object {
+            $_ -ne '.env.example' -and (
+              $_ -match '(^|/)data/' -or
+              $_ -match '(^|/)logs/' -or
+              $_ -match '(bridge_token|tunnel\.json|tunnel_url|ip_allowlist|\.env)'
+            )
+          }
+          if ($binary) { $binary; throw 'Model weights and media must not be committed.' }
+          if ($secrets) { $secrets; throw 'Runtime data and secret files must not be committed.' }
+          "Tracked files checked: $($tracked.Count)"
+
+      - name: Unit tests
+        working-directory: comfy_mcp
+        run: python -m pytest tests -q

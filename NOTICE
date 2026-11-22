@@ -1,0 +1,79 @@
+Aster Studio
+Copyright 2026 Aster Studio contributors
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+The Apache-2.0 grant covers the source code of this repository. It does not
+cover model weights, model files, generated media, or third-party components
+listed below.
+
+--------------------------------------------------------------------------------
+Third-party components
+--------------------------------------------------------------------------------
+
+1. ComfyUI (inference backend, external installation)
+   Upstream: https://github.com/comfyanonymous/ComfyUI
+   License:  GNU GPL v3 (see upstream repository for the authoritative text).
+   Usage:    Aster Studio talks to a locally installed ComfyUI over its HTTP
+             API (default 127.0.0.1:8188). ComfyUI source code is not included
+             in this repository; it is installed separately by the user.
+
+2. Qwen model family (Qwen-Image, Qwen3-VL text encoder)
+   Upstream: https://github.com/QwenLM/Qwen-Image
+             https://github.com/QwenLM/Qwen3-VL
+   License:  see the upstream repository and model card for the license that
+             applies to the specific weights you obtain.
+   Usage:    referenced by workflow templates as model file names only.
+             Weights are not distributed by this project.
+
+3. MiniMax H3 (video generation model)
+   Upstream: MiniMax H3 model card and provider terms.
+   License:  see the upstream model card and provider terms.
+   Usage:    referenced by workflow templates as model file names only.
+             Weights are not distributed by this project.
+
+4. MOSS Image (image generation and editing model)
+   Upstream: MOSS Image model card.
+   License:  see the upstream model card.
+   Usage:    referenced by workflow templates as model file names only.
+             Weights are not distributed by this project.
+
+5. FFmpeg (media post-processing, external binary)
+   Upstream: https://ffmpeg.org
+   License:  LGPL v2.1 or later for standard builds; GPL v2 or later for
+             GPL-enabled builds. Consult the build you install.
+   Usage:    invoked as an external process for trimming, concatenation,
+             muxing, subtitle burn-in, overlays, frame/audio extraction and
+             transcoding. No FFmpeg binaries are distributed here.
+
+6. Python dependencies (installed from PyPI, not vendored)
+   FastAPI, Uvicorn, Requests, psutil, pydantic, python-multipart, aiohttp.
+   Each package is licensed by its own authors; see the installed distribution
+   metadata for the applicable license text.
+
+7. Optional chat bridge plugin (optional/astrbot_plugin_comfy_bridge)
+   Runs inside AstrBot and depends on AstrBot's own runtime; AstrBot and its
+   dependencies are not distributed with this repository. See the AstrBot
+   project for its license terms.
+
+--------------------------------------------------------------------------------
+Model weights are NOT distributed
+--------------------------------------------------------------------------------
+
+This repository does not contain, host, mirror, or redistribute any model
+weights, checkpoints, LoRA files, VAEs, text encoders, or generated media.
+
+- `setup/models.json` is a catalog of identifiers, expected file names under
+  `ComfyUI/models/`, and size estimates. Download URLs are intentionally left
+  empty; the catalog is not a distribution channel.
+- Users are responsible for obtaining every model from its upstream provider
+  and for complying with the upstream license and terms of use, including any
+  restrictions on commercial use, redistribution, derivative models, or
+  acceptable-use requirements.
+- Generated media inherits the constraints of the models used to generate it.
+  Users are responsible for the rights and clearances of prompts and inputs
+  they supply.
+- Nothing in the Apache-2.0 license for this repository grants any right to
+  third-party model weights, trademarks, or provider services.
+
+Third-party names are used only to describe interoperability. All trademarks
+remain the property of their respective owners.

@@ -649,6 +649,7 @@ class _StubClient:
 def _settings(**overrides) -> dict:
     settings = copy.deepcopy(config.DEFAULT_SETTINGS)
     settings["safety"]["watch_interval_s"] = 0.01
+    settings["safety"]["unlimited_h3"] = False
     settings["safety"].update(overrides)
     return settings
 

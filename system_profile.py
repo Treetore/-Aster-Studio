@@ -9,6 +9,25 @@ from pathlib import Path
 
 import psutil
 
+MODE_FILE = Path(__file__).resolve().parent / "data" / "host_mode.json"
+
+
+def get_mode_override() -> str | None:
+    try:
+        import json
+        mode = json.loads(MODE_FILE.read_text(encoding="utf-8")).get("mode")
+        return mode if mode in ("low_vram", "normal", "high") else None
+    except Exception:
+        return None
+
+
+def set_mode_override(mode: str) -> str:
+    import json
+    mode = mode if mode in ("low_vram", "normal", "high") else "auto"
+    MODE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    MODE_FILE.write_text(json.dumps({"mode": mode}, ensure_ascii=False, indent=2), encoding="utf-8")
+    return mode
+
 
 def _gpu() -> dict:
     exe = shutil.which("nvidia-smi")
@@ -35,9 +54,11 @@ def detect() -> dict:
     vram = int(gpu.get("vram_total_mb") or 0)
     ram = round(vm.total / 1024**3, 1)
     low_vram = (vram and vram < 9000) or ram < 24
-    mode = "low_vram" if low_vram else "normal"
+    detected = "low_vram" if low_vram else "normal"
     if vram and vram >= 16000 and ram >= 48:
-        mode = "high"
+        detected = "high"
+    override = get_mode_override()
+    mode = override or detected
     return {
         "os": platform.system(),
         "os_version": platform.version(),
@@ -49,6 +70,8 @@ def detect() -> dict:
         "gpu": gpu,
         "vram_total_mb": vram,
         "mode": mode,
+        "detected_mode": detected,
+        "mode_override": override,
         "limits": {
             "direct_720p_max_s": 10 if mode == "low_vram" else 12,
             "segment_threshold_s": 12,
