@@ -8,6 +8,7 @@
 | [integrations](integrations/) | 外部集成 |
 | [release](release/) | 发布检查清单与测试报告 |
 
+- [v1.00 发行说明](release/RELEASE_NOTES_v1.00.md)
 - [发布前测试报告](release/RELEASE_TEST_REPORT.md)
 
 根目录文档：

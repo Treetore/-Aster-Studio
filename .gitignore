@@ -30,3 +30,6 @@ docs/INCIDENT*
 docs/GPU_LOST*
 webapp/_backup*
 !.env.example
+
+# 本地后续计划，不随仓库上传
+/ROADMAP.md

@@ -246,3 +246,7 @@ python -m pytest comfy_mcp/tests -q
 - QQ 群：**[点击加入](https://qm.qq.com/q/Ww5b5dF5mO)**
 - 问题反馈：GitHub Issues
 - 细节与反馈模板：[docs/COMMUNITY.md](docs/COMMUNITY.md)
+
+## 后续计划
+
+后续计划在本地工作区维护，不随仓库上传。

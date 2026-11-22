@@ -57,7 +57,7 @@ LOWMEM_ARGS = ["--windows-standalone-build", "--listen", "127.0.0.1", "--port", 
                "--lowvram", "--cache-none", "--reserve-vram", "1.0",
                "--fast", "fp16_accumulation", "--cuda-malloc", "--disable-auto-launch"]
 
-app = FastAPI(title="Aster启动器", version="1.1.0")
+app = FastAPI(title="Aster启动器", version="1.0.0")
 
 
 # --------------------------------------------------------------------------- #
