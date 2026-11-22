@@ -1,10 +1,20 @@
 # Aster Studio
 
+> 面向单机工作站的本地 AI 视频 / 图像生成工作台：以用户自行安装的 ComfyUI 为推理后端，提供 Web 工作台、桌面启动器、MCP 接口、任务队列、资源守卫、模型目录与 ffmpeg 后期处理。
+
+- 社群反馈：**[QQ 群](https://qm.qq.com/q/Ww5b5dF5mO)** · [Issues](https://github.com/Treetore/-Aster-Studio/issues)
+
 Aster Studio 是面向单台本地工作站的 AI 视频与图像生成工作台。项目以用户自行安装的 ComfyUI 为推理后端，提供 Web 工作台、桌面启动器、MCP 工具接口、任务队列、资源守卫、模型目录管理与 ffmpeg 后期处理能力。
 
 - 代码许可：Apache License 2.0（见 [LICENSE](LICENSE)）
 - 第三方组件与本项目不分发模型权重的声明：见 [NOTICE](NOTICE)
 - 当前版本：1.0.0，源码分发
+
+## 项目简介
+
+Aster Studio 将 ComfyUI 的模型推理能力封装为可日常使用的本地工作台：视频（MiniMax H3）、图像（Qwen-Image / MOSS）、长片分段、超分与剪辑集中在同一界面；同时保留 MCP 与桥接接口，便于接入聊天机器人和自动化脚本。
+
+项目不随仓库分发模型权重；ComfyUI、ffmpeg 与各模型遵循各自上游许可。当前版本面向 Windows + NVIDIA 单机环境，默认只监听本机回环地址。
 
 ## 项目状态
 
@@ -229,3 +239,10 @@ python -m pytest comfy_mcp/tests -q
 - 源代码：Apache License 2.0，全文见 [LICENSE](LICENSE)。
 - 第三方组件、模型权重不分发的声明与上游许可提示：见 [NOTICE](NOTICE)。
 - ComfyUI、模型权重、ffmpeg 与 AstrBot 均为外部组件，各自遵循其上游许可；使用者需自行遵守。
+
+
+## 社群与反馈
+
+- QQ 群：**[点击加入](https://qm.qq.com/q/Ww5b5dF5mO)**
+- 问题反馈：GitHub Issues
+- 细节与反馈模板：[docs/COMMUNITY.md](docs/COMMUNITY.md)
