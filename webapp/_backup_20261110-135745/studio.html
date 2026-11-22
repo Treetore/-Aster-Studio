@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>本地即梦 · H3 Studio</title>
+<style>
+:root{
+  --bg:#f5f6fa;--card:#fff;--line:#e8eaf2;--text:#1c2033;--sub:#8b90a6;
+  --brand:#6c5ce7;--brand2:#4f8cff;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;
+  --radius:14px;--shadow:0 6px 24px rgba(24,30,60,.07);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+a{color:var(--brand);text-decoration:none}
+header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.hwrap{max-width:1440px;margin:0 auto;display:flex;align-items:center;gap:18px;padding:10px 20px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:16px;white-space:nowrap}
+.logo i{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--brand),var(--brand2));display:inline-block;box-shadow:0 4px 12px rgba(108,92,231,.35)}
+.logo small{font-weight:500;color:var(--sub);font-size:11px;margin-left:2px}
+.hw{margin-left:auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pill{display:flex;align-items:center;gap:6px;background:#f0f2f9;border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12px;color:#4b5168;white-space:nowrap}
+.pill b{font-weight:700;color:#1c2033}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(34,197,94,.15)}
+.dot.bad{background:var(--bad);box-shadow:0 0 0 3px rgba(239,68,68,.15)}
+.hwbtn{cursor:pointer}
+.app{max-width:1440px;margin:0 auto;display:flex;gap:0;min-height:calc(100vh - 58px)}
+.side{width:196px;flex:0 0 196px;padding:22px 14px;border-right:1px solid var(--line)}
+.side .item{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:11px;color:#4b5168;cursor:pointer;margin-bottom:5px;font-weight:600;transition:.15s}
+.side .item:hover{background:#eef0f9}
+.side .item.on{background:linear-gradient(135deg,rgba(108,92,231,.12),rgba(79,140,255,.12));color:var(--brand)}
+.side .item em{font-style:normal;font-size:16px;width:20px;text-align:center}
+.side .hint{margin-top:20px;padding:12px;background:#fff;border:1px dashed var(--line);border-radius:12px;font-size:11px;color:var(--sub);line-height:1.7}
+main{flex:1;min-width:0;padding:24px}
+.view{display:none}.view.on{display:block}
+h1{font-size:20px;margin:0 0 4px}
+.sub{color:var(--sub);font-size:12.5px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.85fr);gap:18px;align-items:start}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row+.row{margin-top:10px}
+label.lab{font-size:12px;color:var(--sub);display:block;margin:0 0 6px}
+textarea,input,select{font:13px "Segoe UI","PingFang SC","Microsoft YaHei";color:var(--text);background:#fbfbfe;border:1px solid var(--line);border-radius:10px;padding:9px 11px;outline:none;transition:.15s}
+textarea:focus,input:focus,select:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px rgba(108,92,231,.1)}
+textarea{width:100%;min-height:120px;resize:vertical;line-height:1.7}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.chip{font-size:12px;background:#f2f3fa;border:1px solid var(--line);color:#5a6080;border-radius:999px;padding:4px 11px;cursor:pointer}
+.chip:hover{border-color:var(--brand);color:var(--brand)}
+.btn{border:0;border-radius:11px;padding:10px 18px;font-weight:700;font-size:13.5px;cursor:pointer;transition:.15s;background:#eef0f9;color:#3c4160}
+.btn:hover{filter:brightness(.97)}
+.btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;box-shadow:0 8px 20px rgba(108,92,231,.28)}
+.btn.primary:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+.btn.sm{padding:6px 11px;font-size:12px;border-radius:9px}
+.modes{display:flex;gap:8px;margin-bottom:14px}
+.modes .m{flex:1;text-align:center;padding:9px 6px;border:1px solid var(--line);border-radius:11px;font-size:13px;font-weight:600;color:#5a6080;cursor:pointer;background:#fbfbfe}
+.modes .m.on{border-color:var(--brand);color:var(--brand);background:rgba(108,92,231,.07)}
+.up{border:1.5px dashed #d7dbea;border-radius:12px;min-height:92px;display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:12.5px;cursor:pointer;background:#fbfbfe;margin-top:8px;text-align:center;padding:10px}
+.up:hover{border-color:var(--brand);color:var(--brand)}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.thumb{position:relative;width:82px;height:58px;border-radius:9px;overflow:hidden;border:1px solid var(--line);background:#000}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb b{position:absolute;top:2px;right:4px;color:#fff;background:rgba(0,0,0,.5);border-radius:6px;font-size:11px;padding:0 5px;cursor:pointer}
+.joblist{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.job{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--line);border-radius:11px;font-size:12.5px}
+.job .grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{font-size:11px;border-radius:999px;padding:2px 9px;font-weight:700}
+.badge.run{background:rgba(108,92,231,.12);color:var(--brand)}
+.badge.ok{background:rgba(34,197,94,.12);color:#15803d}
+.badge.fail{background:rgba(239,68,68,.12);color:#b91c1c}
+.badge.wait{background:rgba(245,158,11,.13);color:#b45309}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.vcard{background:#fff;border:1px solid var(--line);border-radius:13px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:.18s}
+.vcard:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(24,30,60,.12)}
+.vcard video{width:100%;aspect-ratio:16/9;object-fit:cover;background:#0d0f18;display:block}
+.vcard .meta{padding:9px 11px}
+.vcard .meta b{display:block;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vcard .meta span{font-size:11px;color:var(--sub)}
+.mini{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.mini .vcard .meta{padding:6px 8px}
+.mini .vcard .meta b{font-size:11px}.mini .vcard .meta span{display:none}
+.stat{display:flex;justify-content:space-between;font-size:12.5px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.stat:last-child{border:0}
+.stat span:first-child{color:var(--sub)}
+.bar{height:7px;border-radius:5px;background:#eef0f9;overflow:hidden;margin-top:7px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--brand2));width:0;transition:.4s}
+pre{background:#f7f8fc;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:11.5px;max-height:220px;overflow:auto;margin:0;color:#4b5168;white-space:pre-wrap}
+.modal{position:fixed;inset:0;background:rgba(12,15,28,.62);display:none;align-items:center;justify-content:center;z-index:50;padding:24px}
+.modal.on{display:flex}
+.modal .box{background:#fff;border-radius:16px;max-width:1000px;width:100%;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal video{width:100%;max-height:70vh;border-radius:12px;background:#000}
+.modal .bar2{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:#1c2033;color:#fff;padding:10px 18px;border-radius:11px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:80;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.hwpanel{position:absolute;right:20px;top:58px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:14px;width:300px;display:none;z-index:30}
+.hwpanel.on{display:block}
+.hwpanel h4{margin:0 0 8px;font-size:12px;color:var(--sub);letter-spacing:.5px}
+.hwrow{display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0}
+.hwrow span:first-child{color:var(--sub)}
+.muted{color:var(--sub);font-size:12px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <div class="hwrap">
+    <div class="logo"><i></i>本地即梦 <small>H3 Studio</small></div>
+    <div class="hw">
+      <div class="pill"><span class="dot" id="stDot"></span><span id="stText">连接中</span></div>
+      <div class="pill">GPU <b id="gUtil">--</b>% · <b id="gVram">--</b> GB</div>
+      <div class="pill">🌡 <b id="gTemp">--</b>°C · <b id="gPower">--</b>W</div>
+      <div class="pill">RAM 空闲 <b id="gRam">--</b> GB</div>
+      <div class="pill hwbtn" onclick="document.getElementById('hwpanel').classList.toggle('on')">硬件详情 ▾</div>
+    </div>
+  </div>
+  <div class="hwpanel" id="hwpanel">
+    <h4>硬件与队列</h4>
+    <div class="hwrow"><span>显卡</span><b id="hpName">--</b></div>
+    <div class="hwrow"><span>显存</span><b id="hpVram">--</b></div>
+    <div class="hwrow"><span>利用率</span><b id="hpUtil">--</b></div>
+    <div class="hwrow"><span>温度/功耗</span><b id="hpTP">--</b></div>
+    <div class="hwrow"><span>内存空闲/总量</span><b id="hpRam">--</b></div>
+    <div class="hwrow"><span>Commit</span><b id="hpCommit">--</b></div>
+    <div class="hwrow"><span>队列 running/pending</span><b id="hpQueue">--</b></div>
+    <div class="bar"><i id="hpBar"></i></div>
+    <div class="muted" style="margin-top:8px">刷新 <span id="hpTime">--</span></div>
+  </div>
+</header>
+
+<div class="app">
+  <nav class="side">
+    <div class="item on" data-tab="create"><em>✦</em>创作</div>
+    <div class="item" data-tab="gallery"><em>▦</em>我的作品</div>
+    <div class="item" data-tab="upscale"><em>⤢</em>超分</div>
+    <div class="item" data-tab="edit"><em>✂</em>剪辑</div>
+    <div class="item" data-tab="settings"><em>⚙</em>设置</div>
+    <div class="hint">MiniMax-H3 本地生成 / 原生音频 / 4x 超分 / ffmpeg 剪辑<br><br><a href="/docs" target="_blank">REST API 文档 →</a></div>
+  </nav>
+  <main>
+    <!-- 创作 -->
+    <section class="view on" id="view-create">
+      <h1>创作视频</h1>
+      <div class="sub">文生视频 / 首尾帧 / 参考图 · 608×352 · 24fps · 原生立体声</div>
+      <div class="grid2">
+        <div class="card">
+          <div class="modes">
+            <div class="m on" data-mode="t2v">文生视频</div>
+            <div class="m" data-mode="fl2v">首尾帧</div>
+            <div class="m" data-mode="r2v">参考图</div>
+          </div>
+          <label class="lab">提示词</label>
+          <textarea id="prompt" placeholder="描述你想要的画面：如 新海诚风格动画，黄昏天台，积雨云与夕阳光束，白裙少女倚栏远望，镜头缓慢推进…"></textarea>
+          <div class="chips" id="chips"></div>
+
+          <div id="imgArea" class="hidden">
+            <div class="row" style="margin-top:12px"><label class="lab" style="margin:0">参考图（0-9 张，对应 &lt;Picture i&gt;）</label></div>
+            <div class="up" id="refUp">点击上传参考图</div>
+            <div class="thumbs" id="refThumbs"></div>
+            <input type="file" id="refFile" accept="image/*" multiple hidden>
+          </div>
+          <div id="frameArea" class="hidden">
+            <div class="row" style="margin-top:12px">
+              <div style="flex:1"><label class="lab">首帧（可选）</label><div class="up" id="firstUp">点击上传首帧</div><div class="thumbs" id="firstThumb"></div><input type="file" id="firstFile" accept="image/*" hidden></div>
+              <div style="flex:1"><label class="lab">尾帧（可选）</label><div class="up" id="lastUp">点击上传尾帧</div><div class="thumbs" id="lastThumb"></div><input type="file" id="lastFile" accept="image/*" hidden></div>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:14px">
+            <div><label class="lab">分辨率预设</label><select id="resPreset">
+              <option value="608x352">608×352 横屏 16:9</option>
+              <option value="352x608">352×608 竖屏 9:16</option>
+              <option value="448x448">448×448 方形 1:1</option>
+              <option value="512x384">512×384 4:3</option>
+              <option value="736x416">736×416 高清横屏</option>
+              <option value="864x480">864×480 高分辨率</option>
+              <option value="480x288">480×288 省显存</option>
+              <option value="custom">自定义…</option></select></div>
+            <div><label class="lab">时长(秒)</label><input id="dur" type="number" value="5" min="1" max="15" step="1" style="width:78px"></div>
+            <div><label class="lab">质量档</label><select id="profile"><option value="draft">draft 快</option><option value="short">short 5s</option><option value="standard">standard</option><option value="compact">compact</option><option value="high">high</option></select></div>
+            <div><label class="lab">步数</label><input id="steps" type="number" value="4" style="width:70px"></div>
+            <div><label class="lab">种子</label><input id="seed" type="number" value="2026111001" style="width:120px"></div>
+          </div>
+          <div class="row hidden" id="customRes">
+            <div><label class="lab">宽（32 对齐）</label><input id="cw" type="number" value="608" step="32" style="width:100px"></div>
+            <div><label class="lab">高（32 对齐）</label><input id="ch" type="number" value="352" step="32" style="width:100px"></div>
+          </div>
+          <div class="row">
+            <div><label class="lab">加速优化</label><select id="optimize"><option value="off">off</option><option value="sage">sage</option><option value="lowmem">lowmem</option><option value="max">max</option></select></div>
+            <div style="flex:1"><label class="lab">LoRA（r2v 不支持）</label><input id="lora" value="minimax_h3\minimax_h3_fl2v_lightx2v_turbo_4step_v0.1_comfy.safetensors" style="width:100%"></div>
+          </div>
+          <details style="margin-top:12px;border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:#fbfbfe">
+            <summary style="font-size:12.5px;font-weight:700;color:#4b5168;cursor:pointer">高级参数（采样器 / 调度器 / LoRA 强度 / 模型覆盖 / 优化细项）</summary>
+            <div class="row" style="margin-top:10px">
+              <div><label class="lab">采样器</label><select id="sampler"><option value="res_multistep">res_multistep</option><option value="euler">euler</option><option value="euler_ancestral">euler_ancestral</option><option value="dpmpp_2m">dpmpp_2m</option><option value="dpmpp_3m_sde">dpmpp_3m_sde</option><option value="uni_pc">uni_pc</option></select></div>
+              <div><label class="lab">调度器</label><select id="scheduler"><option value="simple">simple</option><option value="normal">normal</option><option value="beta">beta</option><option value="linear_quadratic">linear_quadratic</option></select></div>
+              <div><label class="lab">LoRA 强度</label><input id="loraStrength" type="number" value="1" min="0" max="2" step="0.05" style="width:80px"></div>
+              <div><label class="lab">参考图尺寸(r2v)</label><select id="refSize"><option value="match">match</option><option value="max">max</option></select></div>
+            </div>
+            <div class="row">
+              <div style="flex:1"><label class="lab">UNet 模型覆盖（默认=模板）</label><select id="unetSel" style="width:100%"><option value="">默认</option></select></div>
+              <div style="flex:1"><label class="lab">文本编码器覆盖</label><select id="clipSel" style="width:100%"><option value="">默认</option></select></div>
+              <div style="flex:1"><label class="lab">视频 VAE 覆盖</label><select id="vaeSel" style="width:100%"><option value="">默认</option></select></div>
+            </div>
+            <div class="row">
+              <div><label class="lab">attn head_chunks</label><input id="headChunks" type="number" value="4" min="1" max="56" style="width:80px"></div>
+              <div><label class="lab">FF chunks</label><input id="ffChunks" type="number" value="2" min="1" max="64" style="width:80px"></div>
+              <div><label class="lab">FF seq_threshold</label><input id="ffSeq" type="number" value="4096" step="256" style="width:100px"></div>
+              <div><label class="lab">TE-Speed device</label><select id="teDevice"><option value="auto">auto</option><option value="gpu">gpu</option><option value="cpu">cpu</option></select></div>
+            </div>
+          </details>
+          <div class="row" style="margin-top:16px">
+            <button class="btn primary" id="genBtn" onclick="submitGenerate()">✦ 生成视频</button>
+            <button class="btn" onclick="planPreview()">试跑校验</button>
+            <span class="muted" id="genMsg"></span>
+          </div>
+          <div class="muted" id="planMsg" style="margin-top:6px;white-space:pre-wrap"></div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="row" style="justify-content:space-between"><label class="lab" style="margin:0">当前任务</label><span class="badge wait" id="curBadge">空闲</span></div>
+            <div style="margin-top:8px"><div class="stat"><span>任务</span><b id="curId">--</b></div><div class="stat"><span>状态</span><b id="curStatus">--</b></div><div class="bar"><i id="curBar"></i></div></div>
+            <video id="curVideo" class="hidden" style="width:100%;border-radius:11px;margin-top:10px;background:#000" controls></video>
+            <div class="row" style="margin-top:10px"><button class="btn sm" onclick="openPlayer(curOutput)">播放</button><button class="btn sm" onclick="upscaleFromPath(curOutput)">超分此视频</button></div>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <div class="row" style="justify-content:space-between"><label class="lab" style="margin:0">最近作品</label><button class="btn sm" onclick="setTab('gallery')">全部 →</button></div>
+            <div class="mini" id="recent"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 作品 -->
+    <section class="view" id="view-gallery">
+      <h1>我的作品</h1><div class="sub">点击卡片播放 · 可快捷超分或剪辑</div>
+      <div class="gallery" id="galleryGrid"></div>
+    </section>
+
+    <!-- 超分 -->
+    <section class="view" id="view-upscale">
+      <h1>视频超分</h1><div class="sub">逐帧流式处理（内存恒定）· 4x 模型输出 2432×1408</div>
+      <div class="card">
+        <div class="row">
+          <div style="flex:1"><label class="lab">源视频</label><select id="uSrc" style="width:100%"></select></div>
+          <div><label class="lab">模型</label><select id="uModel"></select></div>
+          <div><label class="lab">输出</label><select id="uScale"><option value="0">4x</option><option value="3">3x</option><option value="2">2x</option></select></div>
+          <div><label class="lab">CRF</label><input id="uCrf" type="number" value="18" style="width:66px"></div>
+          <div style="align-self:end"><button class="btn primary" onclick="submitUpscale()">开始超分</button></div>
+        </div>
+        <div class="muted" id="uMsg" style="margin-top:8px"></div>
+      </div>
+      <div class="card" style="margin-top:16px"><label class="lab">超分任务</label><div class="joblist" id="uJobs"></div></div>
+    </section>
+
+    <!-- 剪辑 -->
+    <section class="view" id="view-edit">
+      <h1>剪辑</h1><div class="sub">ffmpeg：裁剪 / 拼接 / 缩放 / 混音 / 字幕 / 叠加 / 变速 / 抽帧 / 封面 / GIF</div>
+      <div class="card">
+        <div class="row">
+          <div style="flex:1;min-width:220px"><label class="lab">源视频</label><select id="eSrc" style="width:100%"></select></div>
+          <div><label class="lab">动作</label><select id="eAction"></select></div>
+          <div style="align-self:end"><button class="btn primary" onclick="submitEdit()">执行</button></div>
+        </div>
+        <div class="row" id="eParams" style="margin-top:6px"></div>
+        <div class="muted" id="eMsg" style="margin-top:8px"></div>
+      </div>
+      <div class="card" style="margin-top:16px"><label class="lab">输出目录（artifacts/edited）</label><pre id="eOut">--</pre></div>
+    </section>
+
+    <!-- 设置 -->
+    <section class="view" id="view-settings">
+      <h1>设置</h1><div class="sub">资源守卫 · 日志 · 接口</div>
+      <div class="grid2">
+        <div class="card">
+          <label class="lab">最小空闲内存（GB）</label><input id="sMinRam" type="number" step="0.5">
+          <label class="lab" style="margin-top:10px">触发中断阈值（GB）</label><input id="sTripRam" type="number" step="0.5">
+          <label class="lab" style="margin-top:10px">单飞（single_flight）</label><select id="sSingle"><option value="true">开启</option><option value="false">关闭</option></select>
+          <div class="row" style="margin-top:14px"><button class="btn primary" onclick="saveSettings()">保存</button><span class="muted" id="sMsg"></span></div>
+        </div>
+        <div class="card"><label class="lab">最近日志（comfy stderr）</label><pre id="sLog">--</pre></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal" id="modal" onclick="if(event.target.id==='modal')closeModal()">
+  <div class="box">
+    <video id="modalVideo" controls></video>
+    <div class="bar2"><b id="modalName" class="grow"></b>
+      <a class="btn sm" id="modalDl" download>下载</a>
+      <button class="btn sm" onclick="upscaleFromPath(currentModalPath)">超分</button>
+      <button class="btn sm" onclick="gotoEdit(currentModalPath)">剪辑</button>
+      <button class="btn sm" onclick="closeModal()">关闭</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const S={templates:[],videos:[],models:[],mode:'t2v',refs:[],first:null,last:null,curJob:null,curOutput:null};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function pickRes(){
+  const v=$('resPreset').value;
+  if(v==='custom'){return [parseInt($('cw').value)||608,parseInt($('ch').value)||352]}
+  const [w,h]=v.split('x').map(Number);return [w,h];
+}
+$('resPreset').onchange=()=>$('customRes').classList.toggle('hidden',$('resPreset').value!=='custom');
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2600)}
+async function api(path,opts){const r=await fetch(path,opts);if(!r.ok){let d='';try{d=await r.text()}catch(e){}throw new Error(d||('HTTP '+r.status))}return r.json()}
+function fmtMB(mb){return mb>=1024?(mb/1024).toFixed(1)+' GB':Math.round(mb)+' MB'}
+function badge(status){const cls=status==='completed'?'ok':(status==='failed'||status==='cancelled')?'fail':(status==='running'||status==='in_progress')?'run':'wait';return '<span class="badge '+cls+'">'+esc(status)+'</span>'}
+
+/* ---------- 硬件监控（2s） ---------- */
+async function tickHw(){
+  try{
+    const h=await api('/api/hardware');
+    const g=h.gpu||{};const m=h.memory||{};
+    if(g.error){$('stText').textContent='GPU 读取失败';$('stDot').classList.add('bad')}
+    else{$('stText').textContent='服务正常';$('stDot').classList.remove('bad');
+      $('gUtil').textContent=g.util_pct;$('gVram').textContent=(g.vram_used_mb/1024).toFixed(1)+'/'+(g.vram_total_mb/1024).toFixed(1);
+      $('gTemp').textContent=Math.round(g.temp_c);$('gPower').textContent=Math.round(g.power_w);
+      $('hpName').textContent=g.name;$('hpVram').textContent=g.vram_used_mb+' / '+g.vram_total_mb+' MB';
+      $('hpUtil').textContent=g.util_pct+'%';$('hpTP').textContent=Math.round(g.temp_c)+'°C / '+Math.round(g.power_w)+'W';
+      $('hpBar').style.width=Math.min(100,g.vram_used_mb/g.vram_total_mb*100).toFixed(1)+'%';}
+    $('gRam').textContent=(m.ram_free_gb??'--');$('hpRam').textContent=(m.ram_free_gb??'--')+' / '+(m.ram_total_gb??'--')+' GB';
+    $('hpCommit').textContent=(m.commit_used_gb??'--')+' / '+(m.commit_total_gb??'--')+' GB';
+    $('hpQueue').textContent=(h.queue?.running??0)+' / '+(h.queue?.pending??0);
+    $('hpTime').textContent=h.time||'--';
+    const act=(h.active_jobs||[])[0];
+    if(act){$('curId').textContent=act.id.slice(0,8);$('curStatus').textContent=act.status;$('curBadge').textContent=act.status;$('curBadge').className='badge '+badge(act.status).replace(/<[^>]+>/g,'');}
+    else if(!S.curJob){$('curId').textContent='--';$('curStatus').textContent='idle';$('curBadge').textContent='空闲';$('curBadge').className='badge wait'}
+  }catch(e){
+    $('stText').textContent='服务断开';$('stDot').classList.add('bad');
+  }
+}
+
+/* ---------- 初始化 ---------- */
+async function bootstrap(){
+  const t=await api('/api/templates');
+  S.templates=t.templates||[];
+  const v=await api('/api/videos');
+  S.videos=v.videos||[];
+  const m=await api('/api/upscale/models');
+  S.models=m.models||[];
+  try{const md=await api('/api/models');fillModelSelects(md)}catch(e){}
+  fillSrcSelects();renderGallery();renderRecent();renderChips();
+  loadSettings();
+}
+function fillModelSelects(md){
+  const put=(id,list)=>{const sel=$(id);if(!sel)return;for(const n of (list||[])){const o=document.createElement('option');o.value=n;o.textContent=n;sel.appendChild(o)}};
+  put('unetSel',md.unet);put('clipSel',md.clip);put('vaeSel',md.vae);
+}
+function fillSrcSelects(){
+  for(const id of ['uSrc','eSrc']){
+    const sel=$(id);const cur=sel.value;sel.innerHTML='';
+    for(const v of S.videos){const o=document.createElement('option');o.value=v.path;o.textContent=v.name+' · '+fmtMB(v.mb);sel.appendChild(o)}
+    if(cur)sel.value=cur;
+  }
+  const um=$('uModel');um.innerHTML='';
+  for(const m of S.models){const o=document.createElement('option');o.value=m;o.textContent=m;um.appendChild(o)}
+  const pref=S.models.find(x=>x.includes('anime_6B'));if(pref)um.value=pref;
+}
+function renderChips(){
+  const chips=['新海诚风格黄昏天台，积雨云与夕阳光束，白裙少女倚栏远望，镜头缓慢推进',
+    '夜空银河与城市灯海，少女伸手接住发光花瓣，镜头缓缓拉远升空',
+    '雨夜车窗，霓虹倒影，列车驶过，钢琴与雨声',
+    '夏日海边，积雨云，蝉鸣，阳光透过云隙'];
+  $('chips').innerHTML=chips.map((c,i)=>'<span class="chip" data-i="'+i+'">'+
+    ['黄昏天台','星空灯海','雨夜列车','夏日海边'][i]+'</span>').join('');
+  $('chips').querySelectorAll('.chip').forEach(el=>{el.onclick=()=>{$('prompt').value=chips[+el.dataset.i]}});
+}
+
+/* ---------- Tab ---------- */
+function setTab(name){
+  document.querySelectorAll('.side .item').forEach(el=>el.classList.toggle('on',el.dataset.tab===name));
+  document.querySelectorAll('.view').forEach(el=>el.classList.toggle('on',el.id==='view-'+name));
+  if(name==='gallery')renderGallery();
+  if(name==='upscale')refreshUpscaleJobs();
+  if(name==='edit')buildEditForm();
+  if(name==='settings')loadSettings();
+}
+document.querySelectorAll('.side .item').forEach(el=>el.onclick=()=>setTab(el.dataset.tab));
+
+/* ---------- 模式与上传 ---------- */
+function setMode(m){S.mode=m;document.querySelectorAll('.modes .m').forEach(el=>el.classList.toggle('on',el.dataset.mode===m));
+  $('imgArea').classList.toggle('hidden',m!=='r2v');$('frameArea').classList.toggle('hidden',m!=='fl2v');
+  $('lora').disabled=(m==='r2v');}
+document.querySelectorAll('.modes .m').forEach(el=>el.onclick=()=>setMode(el.dataset.mode));
+async function upload(file){
+  const fd=new FormData();fd.append('file',file);
+  const r=await api('/api/upload',{method:'POST',body:fd});return r;
+}
+$('refUp').onclick=()=>$('refFile').click();
+$('firstUp').onclick=()=>$('firstFile').click();
+$('lastUp').onclick=()=>$('lastFile').click();
+$('refFile').onchange=async e=>{for(const f of e.target.files){const r=await upload(f);S.refs.push(r)}renderRefThumbs()};
+function renderRefThumbs(){
+  $('refThumbs').innerHTML=S.refs.map((x,i)=>'<div class="thumb"><img src="/api/media?path='+encodeURIComponent(x.path)+'"><b data-r="'+i+'">×</b></div>').join('');
+  $('refThumbs').querySelectorAll('b').forEach(b=>b.onclick=()=>{S.refs.splice(+b.dataset.r,1);renderRefThumbs()});
+}
+$('firstFile').onchange=async e=>{if(!e.target.files[0])return;S.first=await upload(e.target.files[0]);
+  $('firstThumb').innerHTML='<div class="thumb"><img src="/api/media?path='+encodeURIComponent(S.first.path)+'"><b onclick="S.first=null;this.parentNode.remove()">×</b></div>'};
+$('lastFile').onchange=async e=>{if(!e.target.files[0])return;S.last=await upload(e.target.files[0]);
+  $('lastThumb').innerHTML='<div class="thumb"><img src="/api/media?path='+encodeURIComponent(S.last.path)+'"><b onclick="S.last=null;this.parentNode.remove()">×</b></div>'};
+
+/* ---------- 生成 ---------- */
+async function submitGenerate(){
+  const prompt=$('prompt').value.trim();
+  if(!prompt){toast('请先填写提示词');return}
+  const [w,h]=pickRes();
+  const tpl=S.mode==='r2v'?'minimax_h3_r2v':(S.mode==='fl2v'?'minimax_h3_fl2v':'minimax_h3_t2v');
+  const p={prompt,profile:$('profile').value,duration_s:parseFloat($('dur').value),
+    width:w,height:h,steps:parseInt($('steps').value),seed:parseInt($('seed').value),
+    optimize:$('optimize').value};
+  if(S.mode!=='r2v'){
+    p.lora_name=$('lora').value;
+    const ls=parseFloat($('loraStrength').value);if(!isNaN(ls))p.lora_strength=ls;
+  }
+  if(S.mode==='r2v'){p.ref_image_size=$('refSize').value;if(S.refs.length)p.ref_images=S.refs.map(x=>x.name)}
+  if(S.mode==='fl2v'){if(S.first)p.first_frame=S.first.name;if(S.last)p.last_frame=S.last.name}
+  const sm=$('sampler').value,sc=$('scheduler').value;if(sm)p.sampler=sm;if(sc)p.scheduler=sc;
+  const u=$('unetSel').value,c=$('clipSel').value,vv=$('vaeSel').value;
+  if(u)p.unet_name=u;if(c)p.clip_name=c;if(vv)p.vae_name=vv;
+  if(p.optimize&&p.optimize!=='off'){
+    p.attn_head_chunks=parseInt($('headChunks').value)||4;
+    p.ff_chunks=parseInt($('ffChunks').value)||2;
+    p.ff_seq_threshold=parseInt($('ffSeq').value)||4096;
+    p.te_speed_device=$('teDevice').value||'auto';
+  }
+  $('genBtn').disabled=true;$('genMsg').textContent='提交中…';
+  try{
+    const r=await api('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({template:tpl,params:p})});
+    if(!r.ok){$('genMsg').textContent='失败：'+(r.error||r.reason||r.hint||'未知');toast('生成失败');return}
+    $('genMsg').textContent='已提交 '+(r.job_id||'').slice(0,8);toast('已提交生成任务');
+    S.curJob=r.job_id;pollJob(r.job_id);
+  }catch(e){$('genMsg').textContent='失败：'+e.message;toast('提交失败')}
+  finally{$('genBtn').disabled=false}
+}
+async function planPreview(){
+  const prompt=$('prompt').value.trim()||'test prompt';
+  const [w,h]=pickRes();
+  const tpl=S.mode==='r2v'?'minimax_h3_r2v':(S.mode==='fl2v'?'minimax_h3_fl2v':'minimax_h3_t2v');
+  const p={prompt,profile:$('profile').value,duration_s:parseFloat($('dur').value),width:w,height:h,
+    steps:parseInt($('steps').value),optimize:$('optimize').value};
+  if(S.mode!=='r2v')p.lora_name=$('lora').value;
+  $('planMsg').textContent='校验中…';
+  try{
+    const r=await api('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({template:tpl,params:p})});
+    const v=r.validation||{},g=r.guard||{},c=(g.snapshot||{}).cost||{};
+    let txt=(r.ok?'✓ 校验通过':'✗ 校验失败')+' · validation='+(v.ok?'ok':('errors:'+((v.errors||[]).length)))+
+      ' · risk='+(g.risk||'?')+' · eta≈'+(c.eta_minutes??'?')+'min · '+(w+'×'+h+' '+(c.frames??'')+'帧');
+    if(v.errors&&v.errors.length)txt+='\n'+v.errors.slice(0,3).join('\n');
+    $('planMsg').textContent=txt;
+  }catch(e){$('planMsg').textContent='校验失败：'+e.message}
+}
+async function pollJob(id){
+  for(let i=0;i<1800;i++){
+    await new Promise(r=>setTimeout(r,2500));
+    let j;try{j=await api('/api/jobs/'+encodeURIComponent(id))}catch(e){continue}
+    const job=j.job||{};const status=job.status||'running';
+    $('curId').textContent=id.slice(0,8);$('curStatus').textContent=status;
+    $('curBadge').textContent=status;$('curBadge').className='badge '+badge(status).replace(/<[^>]+>/g,'');
+    $('curBar').style.width=(status==='completed'?100:(status==='running'?60:20))+'%';
+    if(status==='completed'){
+      const out=(job.outputs||[])[0];
+      const outPath=out&&(out.filename_abs||out.abs_path||out.path);
+      if(outPath){S.curOutput=outPath;const v=$('curVideo');v.classList.remove('hidden');v.src='/api/media?path='+encodeURIComponent(outPath);}
+      toast('生成完成');refreshVideos();break;
+    }
+    if(status==='failed'||status==='cancelled'){toast('任务'+status);break}
+  }
+}
+async function refreshVideos(){try{const v=await api('/api/videos');S.videos=v.videos||[];fillSrcSelects();renderGallery();renderRecent()}catch(e){}}
+
+/* ---------- 作品 ---------- */
+function cardHTML(v){
+  const nm=esc(v.name);const p=encodeURIComponent(v.path);
+  return '<div class="vcard" data-path="'+esc(v.path)+'">'+
+    '<video src="/api/media?path='+p+'" preload="metadata" muted playsinline></video>'+
+    '<div class="meta"><b>'+nm+'</b><span>'+fmtMB(v.mb)+'</span></div></div>';
+}
+function bindCards(root){root.querySelectorAll('.vcard').forEach(el=>{el.onclick=()=>openPlayer(el.dataset.path)})}
+function renderGallery(){const g=$('galleryGrid');g.innerHTML=S.videos.map(v=>cardHTML(v)).join('')||'<div class="muted">暂无作品</div>';bindCards(g)}
+function renderRecent(){const r=$('recent');r.innerHTML=S.videos.slice(0,4).map(v=>cardHTML(v)).join('');bindCards(r)}
+
+/* ---------- 播放器 ---------- */
+function openPlayer(path){
+  if(!path)return;currentModalPath=path;
+  $('modalVideo').src='/api/media?path='+encodeURIComponent(path);
+  $('modalName').textContent=path.split('\\').pop();$('modalDl').href='/api/media?path='+encodeURIComponent(path);
+  $('modalDl').setAttribute('download',path.split('\\').pop());
+  $('modal').classList.add('on');
+  $('modalVideo').play().catch(()=>{});
+}
+function closeModal(){$('modal').classList.remove('on');$('modalVideo').pause();$('modalVideo').src=''}
+let currentModalPath='';
+
+/* ---------- 超分 ---------- */
+async function submitUpscale(){
+  const body={src:$('uSrc').value,model:$('uModel').value,scale_out:parseFloat($('uScale').value),crf:parseInt($('uCrf').value)};
+  if(!body.src){toast('请选择源视频');return}
+  try{const r=await api('/api/upscale',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    toast('超分任务已开始');$('uMsg').textContent='任务 '+r.job_id;refreshUpscaleJobs();
+  }catch(e){$('uMsg').textContent='失败：'+e.message;toast('超分失败')}
+}
+async function refreshUpscaleJobs(){
+  try{const r=await api('/api/upscale/jobs?limit=20');const box=$('uJobs');box.innerHTML='';
+    for(const j of (r.jobs||[])){
+      const el=document.createElement('div');el.className='job';
+      el.innerHTML='<span>'+esc(j.id)+'</span><span class="grow">'+esc((j.src||'').split('\\').pop())+'</span><span>'+esc(j.model)+'</span>'+badge(j.status);
+      if(j.output){const b=document.createElement('button');b.className='btn sm';b.textContent='播放';b.onclick=()=>openPlayer(j.output);el.appendChild(b)}
+      box.appendChild(el);
+    }
+    if(!(r.jobs||[]).length)box.innerHTML='<div class="muted">暂无任务</div>';
+  }catch(e){}
+}
+function upscaleFromPath(path){if(!path){toast('没有可超分的视频');return}setTab('upscale');$('uSrc').value=path;toast('已选择源视频，选择模型后开始')}
+function gotoEdit(path){setTab('edit');if(path)$('eSrc').value=path}
+
+/* ---------- 剪辑 ---------- */
+const ACTIONS={
+  trim:{label:'裁剪 trim',fields:[['start_s','开始秒','number',0],['end_s','结束秒','number',5]]},
+  concat:{label:'拼接 concat',fields:[['inputs','额外视频路径(每行一个)','textarea',''],['crossfade_s','交叉淡化秒','number',0]]},
+  transform:{label:'缩放 transform',fields:[['width','宽','number',1280],['height','高','number',720],['pad','补边(true/false)','text','false'],['fps','帧率','number',24]]},
+  mux_audio:{label:'混音 mux_audio',fields:[['audio','音频文件路径','text',''],['volume','音量','number',1.0],['offset_s','偏移秒','number',0],['replace','替换原音轨(true/false)','text','true']]},
+  burn_subtitles:{label:'字幕 burn_subtitles',fields:[['srt_path','SRT 路径','text',''],['font_size','字号','number',24],['margin_v','底部边距','number',30]]},
+  overlay:{label:'叠加 overlay',fields:[['image_path','图片路径','text',''],['position','位置','select','bottom-right'],['scale','缩放','number',0.2],['opacity','不透明度','number',1.0],['margin','边距','number',16]]},
+  speed:{label:'变速 speed',fields:[['factor','倍速','number',1.5]]},
+  extract_frames:{label:'抽帧 extract_frames',fields:[['fps','频率','number',1],['out_dir','输出目录','text','']]},
+  extract_audio:{label:'抽音频 extract_audio',fields:[['dst','输出路径','text','']]},
+  thumbnail:{label:'封面 thumbnail',fields:[['at_s','时间秒','number',1],['width','宽','number',640]]},
+  to_gif:{label:'GIF to_gif',fields:[['fps','帧率','number',12],['width','宽','number',480]]}
+};
+function buildEditForm(){
+  const sel=$('eAction');sel.innerHTML=Object.keys(ACTIONS).map(k=>'<option value="'+k+'">'+ACTIONS[k].label+'</option>').join('');
+  sel.onchange=renderEditParams;renderEditParams();
+}
+function renderEditParams(){
+  const act=$('eAction').value;const def=ACTIONS[act];const box=$('eParams');box.innerHTML='';
+  for(const [name,label,type,val] of def.fields){
+    const w=document.createElement('div');w.style.minWidth='140px';
+    let inp;
+    if(type==='textarea'){inp=document.createElement('textarea');inp.style.minHeight='60px'}
+    else if(type==='select'){inp=document.createElement('select');inp.innerHTML='<option>top-left</option><option>top-right</option><option>bottom-left</option><option selected>bottom-right</option><option>center</option>'}
+    else{inp=document.createElement('input');inp.type=type==='number'?'number':'text';if(type==='number')inp.step='any'}
+    inp.value=val;inp.dataset.k=name;
+    if(type==='textarea'){w.style.flex='1'}
+    w.innerHTML='<label class="lab">'+label+'</label>';w.appendChild(inp);box.appendChild(w);
+  }
+}
+async function submitEdit(){
+  const act=$('eAction').value;const kw={src:$('eSrc').value};
+  if(!kw.src){toast('请选择源视频');return}
+  $('eParams').querySelectorAll('[data-k]').forEach(el=>{
+    let v=el.value;if(v==='')return;
+    if(el.type==='number')v=parseFloat(v);
+    if(v==='true')v=true;else if(v==='false')v=false;
+    if(el.dataset.k==='inputs'){v=v.split('\n').map(s=>s.trim()).filter(Boolean)}
+    kw[el.dataset.k]=v;
+  });
+  $('eMsg').textContent='执行中…';
+  try{const r=await api('/api/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:act,kwargs:kw})});
+    $('eOut').textContent=JSON.stringify(r,null,1);$('eMsg').textContent=r.ok?'完成':'失败';toast(r.ok?'剪辑完成':'剪辑失败');refreshVideos();
+  }catch(e){$('eMsg').textContent='失败：'+e.message;toast('剪辑失败')}
+}
+
+/* ---------- 设置 ---------- */
+async function loadSettings(){
+  try{const s=await api('/api/settings');const sf=(s.settings||{}).safety||{};
+    $('sMinRam').value=sf.min_ram_free_gb??8;$('sTripRam').value=sf.trip_ram_free_gb??3.5;
+    $('sSingle').value=String(sf.single_flight??true);
+  }catch(e){}
+  try{const l=await api('/api/logs?kind=comfy_stderr&tail=12');$('sLog').textContent=l.tail||'--'}catch(e){}
+}
+async function saveSettings(){
+  const values={safety:{min_ram_free_gb:parseFloat($('sMinRam').value),trip_ram_free_gb:parseFloat($('sTripRam').value),single_flight:$('sSingle').value==='true'}};
+  try{const r=await api('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values})});
+    $('sMsg').textContent=r.ok?'已保存':'保存失败';toast('设置已保存');
+  }catch(e){$('sMsg').textContent='失败：'+e.message}
+}
+
+/* ---------- 启动 ---------- */
+bootstrap().then(()=>{tickHw();setInterval(tickHw,2000);setInterval(()=>{if(document.getElementById('view-gallery').classList.contains('on'))refreshVideos()},8000)});
+</script>
+</body>
+</html>

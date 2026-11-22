@@ -22,3 +22,6 @@ outputs/
 *.ckpt
 *.pt
 *.pth
+
+dist/
+
