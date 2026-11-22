@@ -114,6 +114,34 @@ function setTab(name){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 $$('.side .item').forEach(el=>el.onclick=()=>setTab(el.dataset.tab));
+let PROJECTS=[],PRESETS=[];
+async function loadProjects(){
+  try{const r=await api('/api/projects');PROJECTS=r.projects||[];renderProjects()}catch(e){}
+  try{const r=await api('/api/presets');PRESETS=r.presets||[];renderPresets()}catch(e){}
+}
+function renderProjects(){
+  const box=$('projectList');if(!box)return;
+  box.innerHTML=PROJECTS.length?PROJECTS.map(p=>'<div style="padding:8px 0;border-top:1px solid var(--line)"><b>'+esc(p.name)+'</b><div class="muted" style="font-size:11px">'+esc(p.description||'')+' · '+(p.items||[]).length+' 项</div></div>').join(''):'<div class="muted">暂无项目</div>';
+}
+function renderPresets(){
+  const box=$('presetList'),sel=$('presetSel');
+  if(box)box.innerHTML=PRESETS.map(p=>'<div style="padding:6px 0;border-top:1px solid var(--line);font-size:12px"><b>'+esc(p.name)+'</b><div class="muted">'+esc((p.prompt||'').slice(0,80))+'</div></div>').join('')||'<div class="muted">暂无预设</div>';
+  if(sel){const cur=sel.value;sel.innerHTML='<option value="">不使用预设</option>'+PRESETS.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>').join('');sel.value=cur}
+}
+if($('projCreate'))$('projCreate').onclick=async()=>{
+  const name=$('projName').value.trim();if(!name){$('projMsg').textContent='请输入项目名称';return}
+  try{await api('/api/projects',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,description:$('projDesc').value})});$('projMsg').textContent='已创建';$('projName').value='';$('projDesc').value='';loadProjects()}catch(e){$('projMsg').textContent='失败：'+e.message}
+};
+if($('presetCreate'))$('presetCreate').onclick=async()=>{
+  const name=$('presetName').value.trim(),prompt=$('presetPrompt').value.trim();
+  if(!name||!prompt)return;
+  try{await api('/api/presets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,prompt})});$('presetName').value='';$('presetPrompt').value='';loadProjects();toast('预设已保存')}catch(e){}
+};
+if($('presetSel'))$('presetSel').onchange=()=>{
+  const p=PRESETS.find(x=>x.id===$('presetSel').value);if(!p)return;
+  const ta=$('prompt');ta.value=(ta.value?ta.value+' ':'')+p.prompt;ta.focus();
+};
+
 let MODELS=[],MODEL_SOURCE='local';
 async function loadModels(){
   const grid=$('modelGrid');if(!grid)return;

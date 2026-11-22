@@ -49,6 +49,10 @@ jobs:
         working-directory: comfy_mcp
         run: python -m compileall -q -x "data|logs|artifacts|backups|dist|bundle" .
 
+      - name: JavaScript syntax check
+        working-directory: comfy_mcp
+        run: node --check webapp/static/studio.js
+
       - name: Reject tracked model weights, media and secrets
         working-directory: comfy_mcp
         shell: pwsh
