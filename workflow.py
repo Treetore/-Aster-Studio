@@ -805,8 +805,17 @@ def resolve(name: str, params: dict | None = None) -> dict:
             and params.get("megapixels") is None and params.get("aspect") is None:
         width, height = align_dim(int(meta["default_size"][0])), align_dim(int(meta["default_size"][1]))
     max_pixels = int(generation.get("max_pixels") or (1920 * 1088))
+    _mode = "normal"
+    try:
+        import system_profile
+        _prof = system_profile.current()
+        _pl = _prof.get("limits") or {}
+        _mode = str(_prof.get("mode") or "normal")
+        max_pixels = max(max_pixels, int(_pl.get("max_pixels") or 0))
+    except Exception:
+        pass
     if str(meta.get("kind") or "").startswith("image"):
-        max_pixels = max(max_pixels, 2048 * 2048)
+        max_pixels = max(max_pixels, 4096 * 4096 if _mode == "high" else 2048 * 2048)
     if width * height > max_pixels:
         warnings.append(
             f"分辨率 {width}x{height}={width * height} 超过设置上限 max_pixels={max_pixels}，安全守卫可能拒绝该任务。"
@@ -846,12 +855,22 @@ def resolve(name: str, params: dict | None = None) -> dict:
                        and not str(meta.get("kind") or "").startswith("image"))
         hi_res = width * height >= 900_000
         if is_h3_video and hi_res:
-            if length > 294 and not bool(params.get("allow_unsafe")):
+            try:
+                import system_profile
+                _prof = system_profile.current()
+                _limits = _prof.get("limits") or {}
+                _mode = str(_prof.get("mode") or "normal")
+                _max_s = float(_limits.get("direct_720p_max_s") or 12)
+            except Exception:
+                _mode, _max_s = "normal", 12.0
+            _max_len = duration_to_length(_max_s + 0.2)
+            if length > _max_len and not bool(params.get("allow_unsafe")):
                 raise ValueError(
-                    "720p 单次直出上限 12s：12s 以上请改用 5s 分段（segment_film / 长片页），"
-                    "或显式传 allow_unsafe=true 仅做实验（实测 15s 会 aimdo 崩溃并挂死 ComfyUI）。"
+                    f"当前主机模式 {_mode} 的单次直出上限约 {_max_s:g}s；"
+                    "更长视频请走分段模式（segment_film / 长片页），"
+                    "或显式传 allow_unsafe=true 做实验。"
                 )
-            if length > 252:
+            if length > 252 and _mode != "high":
                 if params.get("context_length") is None:
                     params["context_length"] = 124
                     params["context_overlap"] = 39

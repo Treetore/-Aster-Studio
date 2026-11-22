@@ -27,6 +27,7 @@ from typing import Any
 import aiohttp
 from fastapi import FastAPI, Header, File as FastFile, HTTPException, Response, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 HERE = Path(__file__).resolve().parent
@@ -36,9 +37,16 @@ for _p in (str(PROJECT), str(PROJECT.parent)):
         sys.path.insert(0, _p)
 
 import config  # noqa: E402
-import job_lock  # noqa: E402
+import job_lock
+import job_queue  # noqa: E402
 import model_policy  # noqa: E402
 import workflow  # noqa: E402
+import notify
+import workspace
+try:
+    import i18n
+except Exception:  # noqa: BLE001
+    from webapp import i18n
 try:
     from setup import doctor as selfcheck
 except Exception:  # noqa: BLE001
@@ -46,6 +54,8 @@ except Exception:  # noqa: BLE001
 from server import ComfyService  # noqa: E402  (复用 MCP 服务层：client/safety/jobs/workflow/editing)
 
 SERVICE = ComfyService()
+GENERATION_QUEUE = job_queue.JobQueue()
+GENERATION_QUEUE.set_runner(lambda template, params: SERVICE.tool_generate(template, params))
 LOCK = threading.Lock()
 UPSCALE_JOBS: dict[str, dict] = {}
 UPSCALE_LOCK = threading.Lock()
@@ -87,6 +97,7 @@ class GenerateReq(BaseModel):
     template: str
     params: dict[str, Any]
     allow_risky: bool = False
+    priority: int = 5
 
 
 class UpscaleReq(BaseModel):
@@ -241,6 +252,8 @@ app = FastAPI(
     description="MiniMax-H3 视频生成 / 超分 / 剪辑 的本地 REST API 与可视化界面。",
 )
 
+app.mount("/static", StaticFiles(directory=str(HERE / "static")), name="static")
+
 IP_ALLOWLIST_FILE = Path(config.DATA_DIR) / "ip_allowlist.json"
 _LOCAL_IPS = {"127.0.0.1", "::1", "localhost"}
 
@@ -355,6 +368,63 @@ if _mcp_protocol is not None:
     @app.exception_handler(_mcp_protocol.ToolError)
     async def _tool_error_handler(_request, exc):  # type: ignore[no-untyped-def]
         return _JSONResponse(status_code=400, content={"ok": False, "error": str(exc)})
+
+
+class ProjectReq(BaseModel):
+    name: str = ""
+    description: str = ""
+
+
+class ProjectItemReq(BaseModel):
+    path: str
+    kind: str = ""
+
+
+class PresetReq(BaseModel):
+    name: str = ""
+    prompt: str = ""
+
+
+@app.get("/api/projects")
+def api_projects() -> dict:
+    return {"ok": True, "projects": workspace.projects()}
+
+
+@app.post("/api/projects")
+def api_project_create(req: ProjectReq) -> dict:
+    return {"ok": True, "project": workspace.create_project(req.name, req.description)}
+
+
+@app.delete("/api/projects/{pid}")
+def api_project_delete(pid: str) -> dict:
+    return {"ok": workspace.delete_project(pid)}
+
+
+@app.post("/api/projects/{pid}/items")
+def api_project_add(pid: str, req: ProjectItemReq) -> dict:
+    item = workspace.add_item(pid, req.path, req.kind)
+    return {"ok": bool(item), "project": item}
+
+
+@app.get("/api/presets")
+def api_presets() -> dict:
+    return {"ok": True, "presets": workspace.presets()}
+
+
+@app.post("/api/presets")
+def api_preset_create(req: PresetReq) -> dict:
+    return {"ok": True, "preset": workspace.add_preset(req.name, req.prompt)}
+
+
+@app.get("/api/i18n")
+def api_i18n(lang: str = "zh") -> dict:
+    return {"ok": True, "lang": lang, "strings": i18n.get(lang)}
+
+
+@app.post("/api/notify/test")
+def api_notify_test() -> dict:
+    notify.send("test", {"message": "Aster Studio notification test"})
+    return {"ok": True, "webhook_configured": bool(notify._webhook())}
 
 
 @app.get("/api/health")
@@ -527,7 +597,12 @@ def api_generate(body: GenerateReq) -> dict:
             dur = float(dur)
         except Exception:
             dur = 5.0
-        if dur >= 12 and not params.get("segmented_done"):
+        try:
+            import system_profile
+            _threshold = float((system_profile.current().get("limits") or {}).get("segment_threshold_s") or 12)
+        except Exception:
+            _threshold = 12.0
+        if dur > _threshold and not params.get("segmented_done"):
             segs = max(3, int((dur + 4.999) // 5))
             res = _start_film_job(str(params.get("prompt") or ""),
                                   list(params.get("ref_images") or []), segs, 124,
@@ -537,8 +612,29 @@ def api_generate(body: GenerateReq) -> dict:
                 res.update({"segmented": True, "duration_s": dur,
                             "message": f"{dur:g}s ≥12s，已自动转分段模式（{segs}×5s）"})
             return res
+    if job_lock.status().get("busy"):
+        item = GENERATION_QUEUE.submit(template, params, priority=body.priority,
+                                       meta={"source": "web"})
+        return {"ok": True, "queued": True, "queue_id": item["id"],
+                "position": len(GENERATION_QUEUE.list()), "item": item}
     with LOCK:
         return SERVICE.tool_generate(template, params, allow_risky=body.allow_risky)
+
+
+@app.get("/api/queue")
+def api_queue() -> dict:
+    return {"ok": True, "items": GENERATION_QUEUE.list()}
+
+
+@app.get("/api/queue/{qid}")
+def api_queue_item(qid: str) -> dict:
+    item = GENERATION_QUEUE.get(qid)
+    return {"ok": bool(item), "item": item}
+
+
+@app.delete("/api/queue/{qid}")
+def api_queue_cancel(qid: str) -> dict:
+    return {"ok": GENERATION_QUEUE.cancel(qid)}
 
 
 @app.get("/api/jobs")

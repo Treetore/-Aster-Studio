@@ -45,6 +45,7 @@ from mcp_protocol import McpServer as _McpServer, ToolError as _ToolError  # noq
 
 import job_lock  # noqa: E402
 import proc_cleaner  # noqa: E402
+import notify  # noqa: E402
 import model_policy  # noqa: E402
 
 LOG_PATH = os.path.join(config.LOGS_DIR, "mcp.log")

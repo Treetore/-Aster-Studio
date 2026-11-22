@@ -73,14 +73,28 @@ def detect() -> dict:
         "detected_mode": detected,
         "mode_override": override,
         "limits": {
-            "direct_720p_max_s": 10 if mode == "low_vram" else 12,
-            "segment_threshold_s": 12,
+            "direct_720p_max_s": {"low_vram": 10, "normal": 12, "high": 24}.get(mode, 12),
+            "segment_threshold_s": {"low_vram": 10, "normal": 12, "high": 24}.get(mode, 12),
             "max_width_720p": 1280,
             "max_height_720p": 736,
-            "recommended_optimize": "max" if mode == "low_vram" else "sage",
+            "max_pixels": {"low_vram": 2088960, "normal": 3145728, "high": 8388608}.get(mode, 2088960),
+            "recommended_optimize": "max" if mode != "high" else "sage",
             "recommended_steps": 8,
         },
     }
+
+
+_cache = {"at": 0.0, "data": None}
+
+
+def current(ttl: float = 30.0) -> dict:
+    """带短缓存的 detect()，供生成请求频繁调用。"""
+    import time
+    now = time.time()
+    if not _cache["data"] or now - _cache["at"] > ttl:
+        _cache["data"] = detect()
+        _cache["at"] = now
+    return _cache["data"]
 
 
 if __name__ == "__main__":
