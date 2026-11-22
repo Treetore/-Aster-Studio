@@ -60,7 +60,7 @@ jobs:
           $tracked = git ls-files
           $binary = $tracked | Where-Object { $_ -match '\.(safetensors|ckpt|pt|pth|bin|gguf|mp4|webm|mov)$' }
           $secrets = $tracked | Where-Object {
-            $_ -ne '.env.example' -and (
+            $_ -ne '.env.example' -and $_ -ne 'data/.gitkeep' -and (
               $_ -match '(^|/)data/' -or
               $_ -match '(^|/)logs/' -or
               $_ -match '(bridge_token|tunnel\.json|tunnel_url|ip_allowlist|\.env)'
