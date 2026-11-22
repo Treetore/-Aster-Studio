@@ -1,0 +1,94 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "moss_image_sft_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    },
+    "_meta": {"title": "UNETLoader (MOSS)"}
+  },
+  "2": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3.5_9b_w4a8_gptq.safetensors",
+      "type": "moss_image",
+      "device": "default"
+    },
+    "_meta": {"title": "CLIPLoader (Qwen3.5 9B, moss_image)"}
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "flux2-vae_small.safetensors"
+    },
+    "_meta": {"title": "VAELoader (FLUX.2 small)"}
+  },
+  "4": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["2", 0],
+      "text": ""
+    },
+    "_meta": {"title": "Positive Prompt"}
+  },
+  "5": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["2", 0],
+      "text": ""
+    },
+    "_meta": {"title": "Negative Prompt"}
+  },
+  "6": {
+    "class_type": "EmptyFlux2LatentImage",
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    },
+    "_meta": {"title": "EmptyFlux2LatentImage"}
+  },
+  "8": {
+    "class_type": "SkipLayerGuidanceDiTSimple",
+    "inputs": {
+      "model": ["1", 0],
+      "double_layers": "7, 8, 9",
+      "single_layers": "7, 8, 9",
+      "start_percent": 0.0,
+      "end_percent": 1.0
+    },
+    "_meta": {"title": "SkipLayerGuidanceDiTSimple"}
+  },
+  "7": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["8", 0],
+      "seed": 0,
+      "steps": 25,
+      "cfg": 2.5,
+      "sampler_name": "er_sde",
+      "scheduler": "simple",
+      "positive": ["4", 0],
+      "negative": ["5", 0],
+      "latent_image": ["6", 0],
+      "denoise": 1.0
+    },
+    "_meta": {"title": "KSampler"}
+  },
+  "9": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["7", 0],
+      "vae": ["3", 0]
+    },
+    "_meta": {"title": "VAEDecode"}
+  },
+  "10": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": ["9", 0],
+      "filename_prefix": "image/MOSS_Image"
+    },
+    "_meta": {"title": "SaveImage"}
+  }
+}

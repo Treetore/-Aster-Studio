@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aster 启动器</title>
+<style>
+:root{
+  --bg:#0f1117; --bg2:#151925; --card:#1a1f2e; --card2:#202738; --line:#2a3246;
+  --txt:#e8ecf6; --sub:#96a0b8; --acc:#7c5cff; --acc2:#22d3ee; --ok:#34d399; --warn:#fbbf24; --bad:#f87171;
+  --shadow:0 10px 30px rgba(0,0,0,.35);
+}
+html[data-theme="light"]{
+  --bg:#f4f6fb; --bg2:#ffffff; --card:#ffffff; --card2:#f7f8fd; --line:#e3e7f2;
+  --txt:#1a2237; --sub:#69718a; --acc:#6b46ff; --acc2:#0ea5b7; --ok:#10b981; --warn:#d97706; --bad:#dc2626;
+  --shadow:0 10px 26px rgba(30,40,80,.08);
+}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 "Segoe UI","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--txt)}
+a{color:inherit}
+.wrap{display:flex;min-height:100vh}
+.side{width:220px;flex:none;background:var(--bg2);border-right:1px solid var(--line);padding:18px 12px;display:flex;flex-direction:column;gap:6px}
+.brand{display:flex;align-items:center;gap:10px;padding:6px 8px 16px}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:grid;place-items:center;font-weight:700;color:#fff}
+.brand b{font-size:15px;letter-spacing:.3px}
+.brand small{color:var(--sub);display:block;font-size:11px}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav button{all:unset;cursor:pointer;padding:9px 12px;border-radius:10px;color:var(--sub);display:flex;align-items:center;gap:9px}
+.nav button:hover{background:var(--card2);color:var(--txt)}
+.nav button.on{background:linear-gradient(135deg,rgba(124,92,255,.18),rgba(34,211,238,.12));color:var(--txt);box-shadow:inset 0 0 0 1px var(--line)}
+.sidefoot{margin-top:auto;color:var(--sub);font-size:11px;padding:8px}
+.main{flex:1;min-width:0;padding:20px 24px 40px}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.top h1{font-size:20px;margin:0}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.pill{display:flex;align-items:center;gap:7px;padding:6px 11px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:12px;color:var(--sub)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--bad)}
+.dot.ok{background:var(--ok);box-shadow:0 0 8px rgba(52,211,153,.7)}
+.dot.warn{background:var(--warn)}
+.btn{all:unset;cursor:pointer;padding:9px 15px;border-radius:10px;background:var(--card2);border:1px solid var(--line);color:var(--txt);font-size:13px;display:inline-flex;align-items:center;gap:7px;transition:.15s}
+.btn:hover{transform:translateY(-1px);border-color:var(--acc)}
+.btn.primary{background:linear-gradient(135deg,var(--acc),#5b8bff);border-color:transparent;color:#fff;box-shadow:0 8px 22px rgba(124,92,255,.35)}
+.btn.danger{background:rgba(248,113,113,.14);border-color:rgba(248,113,113,.45);color:#ffb4b4}
+.btn.sm{padding:6px 10px;font-size:12px;border-radius:8px}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr}.g2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+.card h3{margin:0 0 10px;font-size:13px;color:var(--sub);font-weight:600;letter-spacing:.4px}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:13px}
+.kv span:first-child{color:var(--sub)}
+.big{font-size:22px;font-weight:650}
+.mono{font-family:Consolas,ui-monospace,monospace}
+.hint{color:var(--sub);font-size:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.spacer{flex:1}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line)}
+th{color:var(--sub);font-weight:600;font-size:12px}
+tr:hover td{background:rgba(124,92,255,.05)}
+.tag{padding:2px 8px;border-radius:999px;font-size:11px;border:1px solid var(--line);color:var(--sub)}
+.tag.ok{color:var(--ok);border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.1)}
+.tag.err{color:var(--bad);border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.1)}
+.tag.run{color:var(--acc2);border-color:rgba(34,211,238,.4);background:rgba(34,211,238,.1)}
+select,input,textarea{background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:8px 10px;font:inherit;outline:none;width:100%}
+select:focus,input:focus,textarea:focus{border-color:var(--acc)}
+textarea{resize:vertical;min-height:120px;font-family:Consolas,monospace;font-size:12.5px}
+label.f{display:block;color:var(--sub);font-size:12px;margin:10px 0 5px}
+pre.log{background:#0b0e15;color:#cfe3ff;border:1px solid var(--line);border-radius:12px;padding:12px;height:52vh;overflow:auto;font:12px/1.5 Consolas,monospace;white-space:pre-wrap}
+html[data-theme="light"] pre.log{background:#0f172a;color:#e2e8f0}
+.check{display:flex;gap:12px;align-items:flex-start;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card2);margin-bottom:9px}
+.check .ico{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:12px;background:rgba(248,113,113,.15);color:var(--bad)}
+.check.ok .ico{background:rgba(52,211,153,.15);color:var(--ok)}
+.check b{font-size:13px}
+.check small{color:var(--sub);display:block}
+.toast{position:fixed;right:20px;bottom:20px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--acc);padding:11px 14px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(8px);transition:.2s;z-index:99;max-width:420px;font-size:13px}
+.toast.on{opacity:1;transform:none}
+.hide{display:none!important}
+.split{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+@media(max-width:1000px){.split{grid-template-columns:1fr}}
+
+/* ---------- 个性化背景与主题 ---------- */
+body{background:var(--bg);}
+body::before{content:"";position:fixed;inset:0;z-index:-2;background-image:var(--bg-image,none);background-size:cover;background-position:center;filter:blur(var(--bg-blur,0px));transform:scale(1.04);opacity:var(--bg-on,0);transition:opacity .35s}
+body::after{content:"";position:fixed;inset:0;z-index:-1;background:var(--bg-dim-color);opacity:var(--bg-dim,0);pointer-events:none}
+.card,.side,.pill,.modal .box{backdrop-filter:blur(12px) saturate(120%)}
+html[data-theme="dark"]{--card:rgba(26,31,46,.82);--bg2:rgba(20,24,36,.78);--bg-dim-color:#0b0e15}
+html[data-theme="light"]{--card:rgba(255,255,255,.84);--bg2:rgba(255,255,255,.75);--bg-dim-color:#e9edf6}
+html[data-theme="monet"]{
+  --bg:#eef1ea;--bg2:rgba(255,255,255,.62);--card:rgba(255,255,255,.76);--card2:rgba(255,255,255,.55);
+  --line:rgba(110,132,142,.30);--txt:#20313a;--sub:#5a7078;
+  --acc:var(--accent,#5a7fe6);--acc2:#39a89b;--ok:#2f9b74;--warn:#c08a2e;--bad:#c95b5b;
+  --shadow:0 12px 30px rgba(60,80,90,.14);--bg-dim-color:#eaf0ec;
+}
+html[data-theme="monet"] .brand b{color:#2a3d46}
+html[data-theme="monet"] .logo{background:linear-gradient(135deg,#7ea6f0,#69bfae);}
+.theme-thumb{width:100%;height:64px;border-radius:9px;object-fit:cover;border:1px solid var(--line);cursor:pointer}
+.theme-thumb.on{outline:2px solid var(--acc);outline-offset:1px}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <aside class="side">
+    <div class="brand">
+      <div class="logo">清</div>
+      <div><b>Aster 启动器</b><small>Local AI Studio</small></div>
+    </div>
+    <div class="nav" id="nav">
+      <button data-p="home" class="on">▶ 启动</button>
+      <button data-p="advanced">⚙ 高级选项</button>
+      <button data-p="models">▦ 模型管理</button>
+      <button data-p="doctor">✚ 疑难解答</button>
+      <button data-p="logs">≣ 控制台</button>
+      <button data-p="jobs">◉ 任务</button>
+      <button data-p="tools">✦ 小工具</button>
+      <button data-p="tunnel">☁ 隧道</button>
+      <button data-p="settings">☰ 设置</button>
+    </div>
+    <div class="sidefoot">
+      <div id="verLine" class="mono">--</div>
+      <div style="margin-top:6px">端口 8188 / 8190 / 8191</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="top">
+      <h1 id="pageTitle">启动</h1>
+      <div class="pills">
+        <div class="pill"><i class="dot" id="pillComfy"></i><span id="pillComfyTxt">ComfyUI</span></div>
+        <div class="pill"><i class="dot" id="pillWeb"></i><span id="pillWebTxt">Web</span></div>
+        <div class="pill"><i class="dot warn" id="pillGpu"></i><span id="pillGpuTxt">GPU</span></div>
+      </div>
+    </div>
+
+    <!-- 启动 -->
+    <section id="p-home">
+      <div class="card" style="margin-bottom:14px">
+        <div class="row">
+          <button class="btn primary" onclick="startAll()">⏻ 一键启动</button>
+          <button class="btn" onclick="startOne('comfy')">仅 ComfyUI</button>
+          <button class="btn" onclick="startOne('web')">仅 Web 工作台</button>
+          <button class="btn" onclick="restartAll()">↻ 重启</button>
+          <button class="btn danger" onclick="stopAll()">■ 停止全部</button>
+          <div class="spacer"></div>
+          <button class="btn sm" onclick="openUrl(WEB)">打开创作页 ↗</button>
+          <button class="btn sm" onclick="openUrl(WEB+'/studio?tab=image')">生图 ↗</button>
+          <button class="btn sm" onclick="openUrl(COMFY)">ComfyUI ↗</button>
+        </div>
+        <div class="hint" id="opHint" style="margin-top:10px">就绪。启动后会自动打开 Web 工作台（可在设置中关闭）。</div>
+      </div>
+
+      <div class="grid g4">
+        <div class="card"><h3>ComfyUI</h3><div class="big" id="sComfy">--</div><div class="hint" id="sComfySub">端口 8188</div></div>
+        <div class="card"><h3>Web 工作台</h3><div class="big" id="sWeb">--</div><div class="hint" id="sWebSub">端口 8190</div></div>
+        <div class="card"><h3>显存</h3><div class="big" id="sVram">--</div><div class="hint" id="sVramSub">--</div></div>
+        <div class="card"><h3>内存 / 磁盘</h3><div class="big" id="sRam">--</div><div class="hint" id="sRamSub">--</div></div>
+      </div>
+
+      <div class="split" style="margin-top:14px">
+        <div class="card">
+          <h3>GPU / 运行状态</h3>
+          <div class="kv"><span>GPU</span><b id="gName">--</b></div>
+          <div class="kv"><span>显存</span><b id="gVram">--</b></div>
+          <div class="kv"><span>温度 / 占用</span><b id="gTemp">--</b></div>
+          <div class="kv"><span>队列</span><b id="gQueue">--</b></div>
+          <div class="kv"><span>端口占用 PID</span><b id="gPorts" class="mono">--</b></div>
+          <div class="kv"><span>TDR</span><b id="gTdr">--</b></div>
+        </div>
+        <div class="card">
+          <h3>快捷入口</h3>
+          <div class="row" style="margin-bottom:8px">
+            <button class="btn sm" onclick="openUrl(WEB+'/studio')">视频创作</button>
+            <button class="btn sm" onclick="openUrl(WEB+'/studio?tab=image')">图像生成</button>
+            <button class="btn sm" onclick="openUrl(WEB+'/studio?tab=gallery')">我的作品</button>
+          </div>
+          <div class="row">
+            <button class="btn sm" onclick="openUrl(WEB+'/docs')">REST 文档</button>
+            <button class="btn sm" onclick="openUrl(COMFY)">节点画布</button>
+            <button class="btn sm" onclick="act('open_logs')">日志目录</button>
+          </div>
+          <div class="hint" style="margin-top:10px">启动器端口 8191。关闭本窗口不会停止 ComfyUI，可在「启动」页停止。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 高级 -->
+    <section id="p-advanced" class="hide">
+      <div class="card">
+        <h3>启动模式</h3>
+        <div class="row">
+          <select id="advMode" style="max-width:220px">
+            <option value="normal">普通（推荐 GPU）</option>
+            <option value="lowmem">低显存（--lowvram）</option>
+            <option value="custom">自定义参数</option>
+          </select>
+          <button class="btn sm" onclick="presetArgs('normal')">填入推荐参数</button>
+          <button class="btn sm" onclick="presetArgs('lowmem')">填入低显存参数</button>
+        </div>
+        <label class="f">启动参数（每行一个，写入 data/settings.json → comfy.start_args）</label>
+        <textarea id="advArgs" spellcheck="false"></textarea>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" onclick="saveArgs()">保存参数</button>
+          <button class="btn" onclick="loadSettings()">重新读取</button>
+          <span class="hint">修改后需重启 ComfyUI 生效。</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 模型 -->
+    <section id="p-models" class="hide">
+      <div class="card">
+        <div class="row">
+          <div class="spacer"></div>
+          <span class="hint" id="modelTotal"></span>
+          <button class="btn sm" onclick="loadModels()">刷新</button>
+          <button class="btn sm" onclick="act('open_models')">打开目录</button>
+        </div>
+        <div class="row" id="modelTabs" style="margin:12px 0"></div>
+        <div style="max-height:56vh;overflow:auto"><table id="modelTable"><thead><tr><th>文件</th><th>大小</th><th>修改时间</th><th></th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- 诊断 -->
+    <section id="p-doctor" class="hide">
+      <div class="card">
+        <div class="row" style="margin-bottom:12px">
+          <button class="btn primary" onclick="loadDoctor()">重新体检</button>
+          <button class="btn" onclick="act('apply_tdr')">设置 TDR=60</button>
+          <button class="btn" onclick="act('free')">释放显存</button>
+          <div class="spacer"></div>
+          <span class="hint" id="docSummary"></span>
+        </div>
+        <div id="docList"></div>
+      </div>
+    </section>
+
+    <!-- 日志 -->
+    <section id="p-logs" class="hide">
+      <div class="card">
+        <div class="row" style="margin-bottom:10px">
+          <select id="logSel" style="max-width:240px" onchange="loadLogs()">
+            <option value="comfy_err">ComfyUI stderr</option>
+            <option value="comfy_out">ComfyUI stdout</option>
+            <option value="web_err">Web UI stderr</option>
+            <option value="web_out">Web UI stdout</option>
+            <option value="mcp">MCP 服务</option>
+          </select>
+          <label class="row" style="gap:6px;color:var(--sub);font-size:12px"><input type="checkbox" id="logAuto" style="width:auto" checked> 自动刷新</label>
+          <button class="btn sm" onclick="loadLogs()">刷新</button>
+          <button class="btn sm" onclick="copyLog()">复制</button>
+          <button class="btn sm" onclick="act('open_logs')">打开目录</button>
+        </div>
+        <pre class="log" id="logBox">（加载中…）</pre>
+      </div>
+    </section>
+
+    <!-- 任务 -->
+    <section id="p-jobs" class="hide">
+      <div class="card">
+        <div class="row" style="margin-bottom:10px">
+          <button class="btn sm" onclick="loadJobs()">刷新</button>
+          <div class="spacer"></div>
+          <span class="hint">最近 20 条生成记录（data/jobs.json）</span>
+        </div>
+        <table id="jobTable"><thead><tr><th>任务</th><th>模板</th><th>状态</th><th>创建</th><th>耗时</th><th>输出</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+    </section>
+
+    <!-- 小工具 -->
+    <section id="p-tools" class="hide">
+      <div class="grid g3">
+        <div class="card"><h3>显存</h3><p class="hint">卸载模型、释放显存与内存缓存。</p><button class="btn" onclick="act('free')">立即释放</button></div>
+        <div class="card"><h3>TDR</h3><p class="hint">把 GPU 超时检测调到 60 秒，降低驱动重置风险（需重启）。</p><button class="btn" onclick="act('apply_tdr')">写入 TDR=60</button></div>
+        <div class="card"><h3>备份</h3><p class="hint">打包 settings.json / jobs.json / docs 到 backups/。</p><button class="btn" onclick="act('backup')">创建备份</button></div>
+        <div class="card"><h3>桌面快捷方式</h3><p class="hint">在桌面创建「Aster Studio 启动器」图标。</p><button class="btn" onclick="act('shortcut')">创建快捷方式</button></div>
+        <div class="card"><h3>快速测试 · Qwen 1024</h3><p class="hint">提交一张 1024×1024 / 25 步测试图（约 50 秒）。</p><button class="btn" onclick="act('quicktest/qwen')">运行</button></div>
+        <div class="card"><h3>快速测试 · H3 2s</h3><p class="hint">提交 2 秒 608×352 视频（含加载约 3 分钟）。</p><button class="btn" onclick="act('quicktest/h3')">运行</button></div>
+        <div class="card"><h3>长片成片</h3><p class="hint">在 Web「长片」页填提示词/参考图，自动分段、首帧接力、拼接；整段直出为备选。</p><button class="btn primary" onclick="openUrl('http://127.0.0.1:8190/studio?tab=film')">打开长片页</button>
+          <p class="hint" style="margin-top:8px">快速预设：<a href="#" onclick="act('film720p');return false">提交 720p 15s 示例</a></p></div>
+      </div>
+    </section>
+
+    <!-- 隧道 -->
+    <section id="p-tunnel" class="hide">
+      <div class="card">
+        <h3>公网映射（cloudflared）</h3>
+        <div class="row">
+          <div style="min-width:240px"><label class="f">模式</label>
+            <select id="tunMode">
+              <option value="quick">Quick Tunnel（免费，URL 每次启动变）</option>
+              <option value="token">命名隧道（固定域名）</option>
+              <option value="named">命名隧道（本机 config.yml）</option>
+            </select>
+          </div>
+          <div style="flex:1;min-width:240px"><label class="f">固定域名</label>
+            <input id="tunDomain" placeholder="bridge.example.com">
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px;align-items:flex-end;gap:8px">
+          <div style="flex:1"><label class="f">隧道名称（创建用）</label><input id="tunName" value="comfy-bridge"></div>
+          <button class="btn" onclick="loginCloudflare()">① 登录 Cloudflare</button>
+          <button class="btn" onclick="setupTunnel()">② 创建固定域名隧道</button>
+          <span class="hint" id="tunCert">未登录</span>
+        </div>
+        <label class="f" style="margin-top:10px">Tunnel Token（命名隧道用）</label>
+        <textarea id="tunToken" placeholder="cloudflared tunnel token ..."></textarea>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" onclick="saveTunnel()">保存</button>
+          <button class="btn" onclick="tunnelAct('start')">启动映射</button>
+          <button class="btn" onclick="tunnelAct('stop')">停止映射</button>
+          <button class="btn" onclick="tunnelAct('restart')">重启</button>
+          <button class="btn sm" onclick="testTunnel()">测试连通</button>
+        </div>
+        <div class="kv"><span>状态</span><b id="tunState">--</b></div>
+        <div class="kv"><span>地址</span><b id="tunUrl" class="mono">--</b></div>
+        <div class="hint" id="tunMsg"></div>
+        <div class="hint" style="margin-top:8px">
+          固定域名步骤（本机执行一次）：<span class="mono">cloudflared tunnel login</span> →
+          <span class="mono">cloudflared tunnel create comfy</span> →
+          <span class="mono">cloudflared tunnel route dns comfy bridge.example.com</span>；
+          取 token：<span class="mono">cloudflared tunnel token comfy</span>。
+          然后在这里填 token + 域名，保存并重启映射。
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h3>IP 白名单</h3>
+        <label class="row" style="gap:8px;color:var(--txt);font-size:13px">
+          <input type="checkbox" id="alEnabled" style="width:auto"> 仅允许下列 IP 经隧道访问（本机直连不受限）
+        </label>
+        <label class="f" style="margin-top:8px">允许的 IP（每行一个）</label>
+        <textarea id="alIps" placeholder="203.0.113.10"></textarea>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" onclick="saveAllow()">保存白名单</button>
+          <span class="hint" id="alMsg"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 设置 -->
+    <section id="p-settings" class="hide">
+      <div class="card" style="margin-bottom:14px">
+        <h3>主题与外观</h3>
+        <div class="row" style="align-items:flex-end;gap:14px">
+          <div style="min-width:200px"><label class="f">主题</label>
+            <select id="setTheme" onchange="previewTheme()">
+              <option value="dark">深色</option><option value="light">浅色</option><option value="monet">莫奈（印象派）</option>
+            </select></div>
+          <div style="min-width:220px"><label class="f">背景图片</label><select id="setBg" onchange="previewTheme()"></select></div>
+          <div style="min-width:160px"><label class="f">强调色</label><input id="setAccent" type="color" value="#8b7cf6" onchange="previewTheme()" style="height:38px;padding:3px"></div>
+        </div>
+        <div class="row" style="margin-top:10px;gap:14px">
+          <div style="flex:1"><label class="f">背景模糊 <span id="blurVal" class="mono"></span></label><input id="setBlur" type="range" min="0" max="30" value="0" oninput="previewTheme()"></div>
+          <div style="flex:1"><label class="f">遮罩浓度 <span id="dimVal" class="mono"></span></label><input id="setDim" type="range" min="0" max="0.9" step="0.05" value="0.55" oninput="previewTheme()"></div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn primary" onclick="saveUi()">保存外观</button>
+          <button class="btn" onclick="document.getElementById('bgFile').click()">上传背景图</button>
+          <input type="file" id="bgFile" accept="image/png,image/jpeg,image/webp" class="hide" onchange="uploadBg(this)">
+          <span class="hint">支持 png/jpg/webp ≤20MB；自动保存到 launcher/assets/。</span>
+        </div>
+        <div class="row" style="margin-top:12px;gap:10px" id="themeThumbs"></div>
+      </div>
+      <div class="card">
+        <h3>界面</h3>
+        <div class="row">
+          <label class="row" style="gap:6px;color:var(--sub);font-size:12px"><input type="checkbox" id="setAutoOpen" style="width:auto"> 启动后自动打开 Web 工作台</label>
+          <div style="max-width:160px"><label class="f">刷新间隔 (ms)</label><input id="setRefresh" type="number" min="1000" max="10000" step="500"></div>
+        </div>
+        <h3 style="margin-top:18px">资源守卫</h3>
+        <label class="row" style="gap:8px;color:var(--txt);font-size:13px">
+          <input type="checkbox" id="setUnlimitedH3" style="width:auto" onchange="saveSafety()">
+          H3 不限制显存/RAM 阈值（跳过 preflight；仍保留单飞与 <1GB RAM 的崩溃保护）
+        </label>
+        <div class="hint" style="margin-top:6px">关闭后恢复 min_ram=3GB / trip=1GB / VRAM 300MB 等默认守卫。</div>
+        <h3 style="margin-top:18px">版本信息</h3>
+        <div class="kv"><span>ComfyUI</span><b id="vComfy">--</b></div>
+        <div class="kv"><span>PyTorch</span><b id="vTorch">--</b></div>
+        <div class="kv"><span>启动器</span><b>Aster 1.0.0</b></div>
+        <div class="hint" style="margin-top:10px">配置文件：K:\CONFI\comfy_mcp\data\settings.json（launcher 段）。</div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const WEB="http://127.0.0.1:8190", COMFY="http://127.0.0.1:8188";
+const $=(id)=>document.getElementById(id);
+const $$=(s,r)=>Array.from((r||document).querySelectorAll(s));
+const esc=(s)=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let OVERVIEW=null, REFRESH=3000, LOG_TIMER=null;
+
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2600)}
+
+async function api(path, opts){
+  const r=await fetch(path, opts);
+  if(!r.ok){let d='';try{d=await r.text()}catch(e){}throw new Error(d||('HTTP '+r.status))}
+  return r.json();
+}
+
+const TITLES={home:'启动',advanced:'高级选项',models:'模型管理',doctor:'疑难解答',logs:'控制台',jobs:'任务',tools:'小工具',settings:'设置',tunnel:'隧道'};
+$$('#nav button').forEach(b=>b.onclick=()=>{
+  $$('#nav button').forEach(x=>x.classList.toggle('on',x===b));
+  const p=b.dataset.p;$('pageTitle').textContent=TITLES[p];
+  $$('.main section').forEach(s=>s.classList.add('hide'));
+  $('p-'+p).classList.remove('hide');
+  if(p==='models')loadModels();
+  if(p==='doctor')loadDoctor();
+  if(p==='logs')loadLogs();
+  if(p==='jobs')loadJobs();
+  if(p==='advanced')loadSettings();
+  if(p==='settings')loadSettings();
+});
+
+function openUrl(u){window.open(u,'_blank')}
+
+async function startAll(){
+  $('opHint').textContent='正在启动 ComfyUI 与 Web 工作台…';
+  try{
+    const r=await api('/api/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scope:'all',wait:true})});
+    const ok=r.ok;
+    $('opHint').textContent=ok?'启动完成。':'启动未完全成功，请到「疑难解答」查看。';
+    if(ok && (OVERVIEW?.launcher?.auto_open_web!==false)) openUrl(WEB+'/studio');
+    toast(ok?'已启动':'部分服务未就绪');
+  }catch(e){$('opHint').textContent='启动失败：'+e.message;toast('启动失败')}
+  refresh();
+}
+async function startOne(scope){
+  $('opHint').textContent='正在启动 '+scope+' …';
+  try{const r=await api('/api/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scope,wait:true})});
+    $('opHint').textContent=r.ok?'已启动 '+scope:'启动失败：'+scope;toast(r.ok?'已启动':'启动失败')}catch(e){toast(e.message)}
+  refresh();
+}
+async function stopAll(){
+  if(!confirm('确定停止 ComfyUI 与 Web 工作台？'))return;
+  try{await api('/api/stop',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scope:'all'})});toast('已停止');$('opHint').textContent='服务已停止。'}catch(e){toast('停止失败')}
+  refresh();
+}
+async function restartAll(){
+  try{await api('/api/restart',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scope:'all'})});toast('已重启')}catch(e){toast('重启失败')}
+  refresh();
+}
+
+async function refresh(){
+  try{
+    OVERVIEW=await api('/api/overview');
+    const o=OVERVIEW;
+    $('pillComfy').className='dot '+(o.comfy.up?'ok':'');
+    $('pillComfyTxt').textContent='ComfyUI '+(o.comfy.up?('v'+(o.comfy.version||'?')):'离线');
+    $('pillWeb').className='dot '+(o.web.up?'ok':'');
+    $('pillWebTxt').textContent='Web '+(o.web.up?'在线':'离线');
+    const g=o.hw.gpu||{};
+    $('pillGpu').className='dot '+(g.name?'ok':'warn');
+    $('pillGpuTxt').textContent=g.name?('GPU '+g.used_mb+'/'+g.total_mb+'MB'):'GPU 未知';
+
+    $('sComfy').textContent=o.comfy.up?('运行中'):'未启动';
+    $('sComfySub').textContent=o.comfy.up?('版本 '+(o.comfy.version||'?')+' · 队列 '+(o.comfy.queue_running??0)+'/'+(o.comfy.queue_pending??0)):'端口 8188 无响应';
+    $('sWeb').textContent=o.web.up?'在线':'未启动';
+    $('sWebSub').textContent=o.web.up?'http://127.0.0.1:8190/':'端口 8190 无响应';
+    $('sVram').textContent=g.name?(g.used_mb+' / '+g.total_mb+' MB'):'--';
+    $('sVramSub').textContent=g.name?('温度 '+g.temp_c+'°C · 占用 '+g.util+'% · '+(g.power_w||'?')+'W'):'未检测到 NVIDIA GPU';
+    $('sRam').textContent=o.hw.ram_free_gb+'GB 空闲';
+    $('sRamSub').textContent='磁盘 K: 空闲 '+o.hw.disk_free_gb+'GB / '+o.hw.disk_total_gb+'GB';
+
+    $('gName').textContent=g.name||'--';
+    $('gVram').textContent=g.name?(g.used_mb+' / '+g.total_mb+' MB'):'--';
+    $('gTemp').textContent=g.name?(g.temp_c+'°C / '+g.util+'%'):'--';
+    $('gQueue').textContent=o.comfy.up?('运行 '+(o.comfy.queue_running??'?')+' · 排队 '+(o.comfy.queue_pending??'?')):'--';
+    $('gPorts').textContent='8188:'+(o.ports['8188']||'-')+' 8190:'+(o.ports['8190']||'-');
+    $('gTdr').textContent='TdrDelay='+(o.tdr.TdrDelay??'未设置')+' TdrDdiDelay='+(o.tdr.TdrDdiDelay??'未设置');
+    $('verLine').textContent='ComfyUI '+(o.version.comfyui||'?')+' · torch '+(o.version.torch||'?');
+    $('vComfy').textContent=o.version.comfyui||'--';
+    $('vTorch').textContent=o.version.torch||'--';
+  }catch(e){}
+}
+
+
+let THEME={assets:[]};
+function setVar(k,v){document.documentElement.style.setProperty(k,v)}
+function applyTheme(cfg){
+  const theme=cfg.theme||'dark';
+  document.documentElement.dataset.theme=theme;
+  const accent=cfg.accent||(theme==='monet'?'#5a7fe6':'#8b7cf6');
+  setVar('--accent',accent);setVar('--acc',accent);
+  const bg=cfg.bg||'';
+  if(bg){setVar('--bg-image','url("/assets/'+encodeURIComponent(bg)+'")');setVar('--bg-on','1')}
+  else{setVar('--bg-image','none');setVar('--bg-on','0')}
+  setVar('--bg-blur',(Number(cfg.bg_blur)||0)+'px');
+  setVar('--bg-dim',String(cfg.bg_dim==null?0.55:cfg.bg_dim));
+  setVar('--bg-dim-color',theme==='light'?'#e9edf6':(theme==='monet'?'#eaf0ec':'#0b0e15'));
+}
+function readThemeControls(){
+  return {theme:$('setTheme').value,bg:$('setBg').value,bg_blur:Number($('setBlur').value),
+          bg_dim:Number($('setDim').value),accent:$('setAccent').value};
+}
+function previewTheme(){
+  $('blurVal').textContent=$('setBlur').value+' px';
+  $('dimVal').textContent=Number($('setDim').value).toFixed(2);
+  applyTheme(readThemeControls());
+}
+async function loadThemeAssets(){
+  try{
+    const d=await api('/api/theme');
+    THEME=d;
+    const sel=$('setBg');
+    sel.innerHTML='<option value="">无背景</option>'+d.assets.map(a=>'<option value="'+esc(a)+'">'+esc(a)+'</option>').join('');
+    if(d.launcher&&d.launcher.bg)sel.value=d.launcher.bg;
+    $('themeThumbs').innerHTML=d.assets.slice(0,6).map(a=>'<img class="theme-thumb'+(d.launcher&&d.launcher.bg===a?' on':'')+'" src="/assets/'+encodeURIComponent(a)+'" title="'+esc(a)+'" onclick="pickBg(\''+esc(a)+'\')">').join('');
+  }catch(e){}
+}
+function pickBg(name){$('setBg').value=name;previewTheme();loadThemeAssets()}
+async function uploadBg(input){
+  const f=input.files[0];if(!f)return;
+  const fd=new FormData();fd.append('file',f);
+  try{
+    const r=await api('/api/theme/upload',{method:'POST',body:fd});
+    if(r.ok){toast('背景已上传');await loadThemeAssets();$('setBg').value=r.name;previewTheme();await saveUi()}
+  }catch(e){toast('上传失败：'+e.message)}
+  input.value='';
+}
+async function loadSettings(){
+  try{
+    const s=await api('/api/settings');
+    $('advArgs').value=(s.comfy.start_args||[]).join('\n');
+    $('advMode').value=s.launcher.mode||'normal';
+    await loadThemeAssets();
+    const L=s.launcher||{};
+    $('setTheme').value=L.theme||'dark';
+    $('setBlur').value=L.bg_blur??0;$('setDim').value=L.bg_dim??0.55;
+    $('setAccent').value=L.accent||'#8b7cf6';
+    $('setAutoOpen').checked=L.auto_open_web!==false;
+    $('setRefresh').value=L.refresh_ms||3000;
+    REFRESH=Number($('setRefresh').value)||3000;
+    try{const sf=await api('/api/safety');$('setUnlimitedH3').checked=!!sf.unlimited_h3}catch(e){}
+    applyTheme(L);
+    previewTheme();
+  }catch(e){toast('读取设置失败')}
+}
+async function saveUi(){
+  const th=readThemeControls();
+  try{
+    await api('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({...th,auto_open_web:$('setAutoOpen').checked,refresh_ms:Number($('setRefresh').value)||3000})});
+    applyTheme(th);REFRESH=Number($('setRefresh').value)||3000;restartTimer();toast('外观已保存');
+    loadThemeAssets();
+  }catch(e){toast('保存失败：'+e.message)}
+}
+async function saveSafety(){
+  try{const on=$('setUnlimitedH3').checked;
+    const r=await api('/api/safety',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({unlimited_h3:on})});
+    toast(r.ok?('资源守卫：H3 '+(on?'不限制':'恢复默认')):'保存失败');
+  }catch(e){toast('保存失败')}
+}
+function presetArgs(kind){
+  const normal=['--windows-standalone-build','--listen','127.0.0.1','--port','8188','--fast','fp16_accumulation','--cuda-malloc','--disable-auto-launch','--vram-headroom','1.0'];
+  const low=['--windows-standalone-build','--listen','127.0.0.1','--port','8188','--lowvram','--cache-none','--reserve-vram','1.0','--fast','fp16_accumulation','--cuda-malloc','--disable-auto-launch'];
+  $('advArgs').value=(kind==='lowmem'?low:normal).join('\n');
+  $('advMode').value=kind;
+}
+
+let ACTIVE_GROUP='diffusion_models';
+async function loadModels(){
+  try{
+    const d=await api('/api/models');
+    $('modelTotal').textContent='合计 '+d.total_gb+' GB';
+    $('modelTabs').innerHTML=d.groups.map(g=>'<button class="btn sm'+(g.group===ACTIVE_GROUP?' primary':'')+'" onclick="ACTIVE_GROUP=\''+g.group+'\';loadModels()">'+esc(g.group)+' <span class="hint">'+g.gb+'G</span></button>').join('');
+    const g=d.groups.find(x=>x.group===ACTIVE_GROUP)||{files:[]};
+    const tb=$('modelTable').querySelector('tbody');
+    tb.innerHTML=g.files.map(f=>'<tr><td class="mono">'+esc(f.name)+'</td><td>'+f.mb+' MB</td><td>'+esc(f.mtime)+'</td>'+
+      '<td><button class="btn sm danger" onclick="delModel(\''+esc(g.group)+'\',\''+esc(f.name)+'\')">删除</button></td></tr>').join('')||
+      '<tr><td colspan="4" class="hint">该分类暂无模型</td></tr>';
+  }catch(e){toast('模型读取失败：'+e.message)}
+}
+async function delModel(group,name){
+  if(!confirm('移入 models/_trash（可手动恢复）：\n'+name))return;
+  try{await api('/api/models/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({group,name})});toast('已移入回收目录');loadModels()}catch(e){toast('删除失败')}
+}
+
+async function loadDoctor(){
+  try{
+    const d=await api('/api/doctor');
+    $('docSummary').textContent=d.ok?('全部通过 · '+d.checks.length+' 项'):(d.errors+' 项异常');
+    $('docList').innerHTML=d.checks.map(c=>'<div class="check '+(c.ok?'ok':'')+'"><div class="ico">'+(c.ok?'✓':'!')+'</div>'+
+      '<div style="flex:1"><b>'+esc(c.title)+'</b><small>'+esc(c.detail)+'</small></div>'+
+      (c.fix?'<button class="btn sm" onclick="act(\''+c.fix+'\')">修复</button>':'')+'</div>').join('');
+  }catch(e){toast('体检失败：'+e.message)}
+}
+
+async function loadLogs(){
+  const name=$('logSel').value;
+  try{
+    const d=await api('/api/logs?name='+encodeURIComponent(name)+'&tail=300');
+    const box=$('logBox');
+    const atBottom=box.scrollTop+box.clientHeight>=box.scrollHeight-30;
+    box.textContent=d.text||'(空)';
+    if(atBottom)box.scrollTop=box.scrollHeight;
+  }catch(e){$('logBox').textContent='读取失败：'+e.message}
+}
+function copyLog(){
+  navigator.clipboard.writeText($('logBox').textContent).then(()=>toast('已复制'),()=>toast('复制失败'));
+}
+
+async function loadJobs(){
+  try{
+    const d=await api('/api/jobs?limit=20');
+    const tb=$('jobTable').querySelector('tbody');
+    tb.innerHTML=(d.jobs||[]).map(j=>{
+      const st=j.status||'?';
+      const cls=st==='completed'?'ok':(st==='running'||st==='queued'?'run':'err');
+      const t=j.created_at?j.created_at.replace('T',' ').slice(0,19):'--';
+      return '<tr><td class="mono">'+(j.id||'').slice(0,8)+'</td><td>'+esc(j.template||'')+'</td>'+
+        '<td><span class="tag '+cls+'">'+esc(st)+'</span></td><td>'+esc(t)+'</td>'+
+        '<td>'+esc((j.finished_at&&j.created_at)?'--':'')+'</td>'+
+        '<td class="mono" title="'+esc(j.output||'')+'">'+esc((j.output||'').split(/[\\/]/).pop()||'--')+'</td>'+
+        '<td>'+(st==='running'?'<button class="btn sm" onclick="cancelJob(\''+(j.id||'')+'\')">取消</button>':'')+'</td></tr>';
+    }).join('')||'<tr><td colspan="7" class="hint">暂无任务</td></tr>';
+  }catch(e){toast('任务读取失败')}
+}
+async function cancelJob(id){
+  try{const r=await api('/api/jobs/'+id+'/cancel',{method:'POST'});toast(r.ok?'已发送取消':'取消失败');loadJobs()}catch(e){toast('取消失败')}
+}
+
+async function act(name){
+  try{
+    const r=await api('/api/action/'+name,{method:'POST'});
+    toast((r.ok?'✓ ':'✗ ')+(r.detail||name));
+    if(name.startsWith('quicktest')){setTimeout(()=>{loadJobs()},1500)}
+    refresh();
+  }catch(e){toast('操作失败：'+e.message)}
+}
+
+function restartTimer(){clearInterval(window._t);window._t=setInterval(refresh,REFRESH)}
+loadSettings().then(()=>{refresh();restartTimer();setInterval(()=>{
+  if(!$('p-logs').classList.contains('hide') && $('logAuto').checked)loadLogs();
+},2500)});
+async function refreshTunCert(){
+  try{const d=await api('/api/tunnel/login/status');
+    $('tunCert').textContent=d.cert?'已登录 Cloudflare':'未登录（点①并在浏览器授权）';
+  }catch(e){}
+}
+async function loginCloudflare(){
+  try{
+    const r=await api('/api/tunnel/login',{method:'POST'});
+    $('tunMsg').textContent=r.ok?r.note:('失败：'+(r.error||''));
+    setTimeout(refreshTunCert,5000);
+  }catch(e){$('tunMsg').textContent='登录启动失败：'+e.message}
+}
+async function setupTunnel(){
+  $('tunMsg').textContent='创建中（创建隧道 → 绑定域名 → 取 token → 重启映射）…';
+  try{
+    const r=await api('/api/tunnel/setup',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:$('tunName').value||'comfy-bridge',domain:$('tunDomain').value})});
+    $('tunMsg').textContent=r.ok?('固定域名就绪：'+r.url):('失败：'+(r.error||''));
+    if(r.ok){toast('固定域名隧道已创建');setTimeout(()=>loadTunnel(true),1500);}
+  }catch(e){$('tunMsg').textContent='创建失败：'+e.message}
+}
+
+/* ---------- 隧道 ---------- */
+let TUN_CFG_LOADED=false;
+async function loadTunnel(force=false){
+  try{
+    const d=await api('/api/tunnel');
+    const st=d.running?'运行中 pid '+d.pid:'已停止';
+    $('tunState').textContent=st+(d.mode?(' · '+d.mode):'');
+    $('tunUrl').textContent=d.url||'--';
+    // 只在首次加载/显式刷新时回填表单，避免 8 秒轮询把正在输入的域名/Token 清空
+    if(force || !TUN_CFG_LOADED){
+      if(d.config){
+        $('tunMode').value=d.config.mode||'quick';
+        $('tunDomain').value=d.config.domain||'';
+        $('tunToken').value=d.config.token||'';
+      }
+      if(d.allowlist){
+        $('alEnabled').checked=!!d.allowlist.enabled;
+        $('alIps').value=(d.allowlist.ips||[]).join('\n');
+      }
+      TUN_CFG_LOADED=true;
+    }
+    refreshTunCert();
+  }catch(e){}
+}
+async function saveTunnel(){
+  try{
+    const r=await api('/api/tunnel',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({mode:$('tunMode').value,token:$('tunToken').value,domain:$('tunDomain').value})});
+    toast(r.ok?'隧道配置已保存':'保存失败');loadTunnel(true);
+  }catch(e){toast('保存失败')}
+}
+async function tunnelAct(a){
+  $('tunMsg').textContent='执行中…';
+  try{
+    const r=await api('/api/tunnel/action/'+a,{method:'POST'});
+    $('tunMsg').textContent=r.ok?'完成':('失败：'+(r.error||r.output||''));
+    toast(r.ok?('映射已'+({start:'启动',stop:'停止',restart:'重启'}[a]||a)):'操作失败');
+    loadTunnel();
+  }catch(e){$('tunMsg').textContent='失败：'+e.message}
+}
+async function testTunnel(){
+  $('tunMsg').textContent='测试中…';
+  try{
+    const r=await api('/api/tunnel/test',{method:'POST'});
+    $('tunMsg').textContent=r.ok?('连通 OK（'+r.url+'）'):('不通：'+(r.error||''));
+  }catch(e){$('tunMsg').textContent='测试失败：'+e.message}
+}
+async function saveAllow(){
+  try{
+    const ips=$('alIps').value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+    const r=await api('/api/security/allowlist',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({enabled:$('alEnabled').checked,ips})});
+    $('alMsg').textContent=r.ok?'已保存（热生效）':'保存失败';
+  }catch(e){$('alMsg').textContent='保存失败'}
+}
+setTimeout(()=>loadTunnel(true), 600);
+setInterval(()=>loadTunnel(false), 8000);
+
+</script>
+</body>
+</html>

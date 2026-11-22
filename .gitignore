@@ -1,0 +1,24 @@
+﻿# local runtime / private
+logs/
+data/*
+!data/.gitkeep
+artifacts/
+backups/
+bundle/
+launcher/launcher_profile/
+webapp/_ui_check_idle.png
+__pycache__/
+*.py[cod]
+*.log
+.env
+.env.*
+.venv/
+venv/
+output/
+outputs/
+*.mp4
+*.webm
+*.safetensors
+*.ckpt
+*.pt
+*.pth
