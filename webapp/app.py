@@ -385,6 +385,42 @@ class PresetReq(BaseModel):
     prompt: str = ""
 
 
+class MarketDownloadReq(BaseModel):
+    url: str = ""
+    save_path: str = "checkpoints"
+    filename: str = ""
+
+
+@app.get("/api/models/market")
+def api_models_market(refresh: bool = False) -> dict:
+    try:
+        from setup import market
+        data = market.fetch(force=refresh)
+        models = data.get("models") or []
+        return {"ok": True, "count": len(models), "stale": bool(data.get("stale")),
+                "error": data.get("error"), "models": models}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": str(exc), "models": []}
+
+
+@app.post("/api/models/market/download")
+def api_models_market_download(req: MarketDownloadReq) -> dict:
+    try:
+        from setup import market
+        return market.download(req.url, req.save_path, req.filename)
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": str(exc)}
+
+
+@app.get("/api/models/market/download")
+def api_models_market_download_status() -> dict:
+    try:
+        from setup import market
+        return {"ok": True, **market.status()}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": str(exc)}
+
+
 @app.get("/api/projects")
 def api_projects() -> dict:
     return {"ok": True, "projects": workspace.projects()}

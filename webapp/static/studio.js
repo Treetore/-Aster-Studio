@@ -114,12 +114,20 @@ function setTab(name){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 $$('.side .item').forEach(el=>el.onclick=()=>setTab(el.dataset.tab));
-let MODELS=[];
+let MODELS=[],MODEL_SOURCE='local';
 async function loadModels(){
   const grid=$('modelGrid');if(!grid)return;
   grid.innerHTML='<div class="muted">加载中…</div>';
   try{
-    const s=await api('/api/setup/status');MODELS=s.models||[];renderModels();
+    if($('modelSource'))MODEL_SOURCE=$('modelSource').value;
+    if(MODEL_SOURCE==='market'){
+      const r=await api('/api/models/market');MODELS=r.models||[];
+      if($('modelMsg'))$('modelMsg').textContent=(r.count||0)+' 个模型'+(r.stale?'（缓存）':'');
+    }else{
+      const s=await api('/api/setup/status');MODELS=s.models||[];
+      if($('modelMsg'))$('modelMsg').textContent=MODELS.length+' 个本地条目';
+    }
+    renderModels();
   }catch(e){grid.innerHTML='<div class="muted">加载失败：'+esc(e.message)+'</div>'}
 }
 function renderModels(){
@@ -128,17 +136,22 @@ function renderModels(){
   const f=$('modelFilter').value;
   const list=MODELS.filter(m=>{
     if(f==='installed'&&!m.installed)return false;
-    if((f==='video'||f==='image')&&m.kind!==f)return false;
-    return !q||(m.name+' '+m.target+' '+m.id).toLowerCase().includes(q);
+    const kind=(m.kind||m.type||'').toLowerCase();
+    if(f==='video'&&!(kind.includes('video')||kind.includes('h3')))return false;
+    if(f==='image'&&!(kind.includes('image')||kind.includes('qwen')||kind.includes('moss')))return false;
+    return !q||(m.name+' '+m.target+' '+m.id+' '+(m.base||'')).toLowerCase().includes(q);
   });
   grid.innerHTML=list.map(m=>'<div class="card" style="padding:12px">'+
     '<div style="display:flex;justify-content:space-between;gap:8px"><b>'+esc(m.name)+'</b>'+
     '<span class="badge '+(m.installed?'ok':'wait')+'">'+(m.installed?'已安装':'未安装')+'</span></div>'+
-    '<div class="muted" style="font-size:12px;margin-top:6px">'+esc(m.kind||'')+' · '+esc(m.target||'')+' · '+(m.size_gb||'?')+'GB</div>'+
+    '<div class="muted" style="font-size:12px;margin-top:6px">'+esc(m.kind||m.type||'')+' · '+esc(m.target||m.save_path||'')+' · '+esc(String(m.size_gb||m.size||'?'))+'</div>'+
+    (m.base?'<div class="muted" style="font-size:11px">基础模型：'+esc(m.base)+'</div>':'')+
     '<div class="muted" style="font-size:11px;margin-top:4px">许可：'+esc(m.license||'见上游')+'</div>'+
     '<div class="row" style="margin-top:8px;gap:6px">'+
-    (m.license_url?'<a class="btn sm ghost" target="_blank" rel="noopener" href="'+esc(m.license_url)+'">许可/来源</a>':'')+
-    (!m.installed?'<button class="btn sm" onclick="downloadModel(\''+esc(m.id)+'\')">下载</button>':'')+
+    (m.license_url||m.reference?'<a class="btn sm ghost" target="_blank" rel="noopener" href="'+esc(m.license_url||m.reference)+'">许可/来源</a>':'')+
+    (!m.installed?(m.source==='comfyui-manager'
+      ?'<button class="btn sm" onclick="downloadMarket(\''+esc(m.id)+'\')">下载</button>'
+      :'<button class="btn sm" onclick="downloadModel(\''+esc(m.id)+'\')">下载</button>'):'')+
     '</div></div>').join('')||'<div class="muted">没有匹配的模型</div>';
 }
 async function downloadModel(id){
@@ -146,37 +159,19 @@ async function downloadModel(id){
   try{await api('/api/setup/download',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids:[id]})});toast('下载任务已提交')}
   catch(e){$('modelMsg').textContent='下载失败：'+e.message}
 }
+async function downloadMarket(id){
+  const m=MODELS.find(x=>x.id===id);if(!m)return;
+  $('modelMsg').textContent='下载已开始：'+m.name;
+  try{
+    const r=await api('/api/models/market/download',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:m.url,save_path:m.save_path,filename:m.filename})});
+    if(!r.ok)throw new Error(r.error||'下载失败');
+    toast('市场模型下载已开始');
+  }catch(e){$('modelMsg').textContent='下载失败：'+e.message}
+}
+if($('modelSource'))$('modelSource').onchange=loadModels;
 $('modelSearch')&&$('modelSearch').addEventListener('input',renderModels);
 $('modelFilter')&&$('modelFilter').addEventListener('change',renderModels);
-$('modelRefresh')&&($('modelRefresh').onclick=loadModels);
-
-let PROJECTS=[],PRESETS=[];
-async function loadProjects(){
-  try{const r=await api('/api/projects');PROJECTS=r.projects||[];renderProjects()}catch(e){}
-  try{const r=await api('/api/presets');PRESETS=r.presets||[];renderPresets()}catch(e){}
-}
-function renderProjects(){
-  const box=$('projectList');if(!box)return;
-  box.innerHTML=PROJECTS.length?PROJECTS.map(p=>'<div style="padding:8px 0;border-top:1px solid var(--line)"><b>'+esc(p.name)+'</b><div class="muted" style="font-size:11px">'+esc(p.description||'')+' · '+(p.items||[]).length+' 项</div></div>').join(''):'<div class="muted">暂无项目</div>';
-}
-function renderPresets(){
-  const box=$('presetList'),sel=$('presetSel');
-  if(box)box.innerHTML=PRESETS.map(p=>'<div style="padding:6px 0;border-top:1px solid var(--line);font-size:12px"><b>'+esc(p.name)+'</b><div class="muted">'+esc((p.prompt||'').slice(0,80))+'</div></div>').join('')||'<div class="muted">暂无预设</div>';
-  if(sel){const cur=sel.value;sel.innerHTML='<option value="">不使用预设</option>'+PRESETS.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>').join('');sel.value=cur}
-}
-if($('projCreate'))$('projCreate').onclick=async()=>{
-  const name=$('projName').value.trim();if(!name){$('projMsg').textContent='请输入项目名称';return}
-  try{await api('/api/projects',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,description:$('projDesc').value})});$('projMsg').textContent='已创建';$('projName').value='';$('projDesc').value='';loadProjects()}catch(e){$('projMsg').textContent='失败：'+e.message}
-};
-if($('presetCreate'))$('presetCreate').onclick=async()=>{
-  const name=$('presetName').value.trim(),prompt=$('presetPrompt').value.trim();
-  if(!name||!prompt)return;
-  try{await api('/api/presets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,prompt})});$('presetName').value='';$('presetPrompt').value='';loadProjects();toast('预设已保存')}catch(e){}
-};
-if($('presetSel'))$('presetSel').onchange=()=>{
-  const p=PRESETS.find(x=>x.id===$('presetSel').value);if(!p)return;
-  const ta=$('prompt');ta.value=(ta.value?ta.value+' ':'')+p.prompt;ta.focus();
-};
+$('modelRefresh')&&($('modelRefresh').onclick=()=>loadModels());
 
 function reloadCanvas(){
   const f=$('comfyCanvas');
