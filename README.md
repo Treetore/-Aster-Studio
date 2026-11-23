@@ -16,8 +16,6 @@ Aster Studio 将 ComfyUI 的模型推理能力封装为可日常使用的本地�
 
 项目不随仓库分发模型权重；ComfyUI、ffmpeg 与各模型遵循各自上游许可。当前版本面向 Windows + NVIDIA 单机环境，默认只监听本机回环地址。
 
-完整项目描述（One-liner / About / 长描述 / 关键词）：[docs/PROJECT_DESCRIPTION.md](docs/PROJECT_DESCRIPTION.md)
-
 ## 项目状态
 
 | 维度 | 现状 |

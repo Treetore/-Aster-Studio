@@ -19,5 +19,4 @@
 - [CHANGELOG](../CHANGELOG.md)
 - [SECURITY](../SECURITY.md)
 - [CONTRIBUTING](../CONTRIBUTING.md)
-- [项目描述](PROJECT_DESCRIPTION.md)
 - [社群反馈](COMMUNITY.md) · [QQ 群](https://qm.qq.com/q/Ww5b5dF5mO)
