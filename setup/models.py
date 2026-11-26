@@ -37,7 +37,7 @@ def save_selected(ids: list[str]) -> None:
 
 
 def installed(m: dict) -> bool:
-    return (comfy_root() / "models" / m.get("target", "") / m.get("file", "")).is_file()
+    return (comfy_root() / "models" / m.get("target", "") / (m.get("file") or m.get("filename") or "")).is_file()
 
 
 def status() -> list[dict]:
@@ -73,7 +73,7 @@ def download(ids: list[str], force: bool = False) -> dict:
     for m in load():
         if m["id"] not in ids:
             continue
-        dest = comfy_root() / "models" / m["target"] / m["file"]
+        dest = comfy_root() / "models" / m["target"] / (m.get("file") or m.get("filename") or "")
         if dest.is_file() and not force:
             out["downloaded"].append({"id": m["id"], "skipped": True})
             continue

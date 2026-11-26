@@ -132,7 +132,8 @@
       "url": "https://huggingface.co/Jianqiao1/MiniMax-H3-Image-Lossless-Pruned-ComfyUI/resolve/main/minimax_h3_image_wavecut_style_pruned_reference_int8_convrot.safetensors",
       "homepage": "https://huggingface.co/Jianqiao1/MiniMax-H3-Image-Lossless-Pruned-ComfyUI",
       "license": "MiniMax H3 Image Community License",
-      "license_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/main/LICENSE"
+      "license_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/main/LICENSE",
+      "file": "minimax_h3_image_wavecut_style_pruned_reference_int8_convrot.safetensors"
     },
     {
       "id": "h3-image-gguf-q4",
@@ -144,7 +145,8 @@
       "url": "https://huggingface.co/Infinix-io/MiniMax-H3-Image-GGUF/resolve/main/MiniMax-H3-Image-Pruned-Q4_K_M.gguf",
       "homepage": "https://huggingface.co/Infinix-io/MiniMax-H3-Image-GGUF",
       "license": "MiniMax H3 Image Community License",
-      "license_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/main/LICENSE"
+      "license_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/main/LICENSE",
+      "file": "MiniMax-H3-Image-Pruned-Q4_K_M.gguf"
     },
     {
       "id": "h3-image-gguf-q2",
@@ -156,7 +158,8 @@
       "url": "https://huggingface.co/Infinix-io/MiniMax-H3-Image-GGUF/resolve/main/MiniMax-H3-Image-Pruned-Q2_K.gguf",
       "homepage": "https://huggingface.co/Infinix-io/MiniMax-H3-Image-GGUF",
       "license": "MiniMax H3 Image Community License",
-      "license_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/main/LICENSE"
+      "license_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/main/LICENSE",
+      "file": "MiniMax-H3-Image-Pruned-Q2_K.gguf"
     },
     {
       "id": "h3-image-vae",
@@ -168,7 +171,8 @@
       "url": "https://huggingface.co/Comfy-Org/MiniMax-H3-Image/resolve/main/vae/minimax_h3_image_vae_fp16.safetensors",
       "homepage": "https://huggingface.co/Comfy-Org/MiniMax-H3-Image",
       "license": "MiniMax H3 Image Community License",
-      "license_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/main/LICENSE"
+      "license_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/main/LICENSE",
+      "file": "minimax_h3_image_vae_fp16.safetensors"
     },
     {
       "id": "h3-image-te-int8",
@@ -180,7 +184,8 @@
       "url": "https://huggingface.co/Comfy-Org/MiniMax-H3-Image/resolve/main/text_encoders/qwen3vl_32b_minimax_h3_int8_convrot.safetensors",
       "homepage": "https://huggingface.co/Comfy-Org/MiniMax-H3-Image",
       "license": "MiniMax H3 Image Community License",
-      "license_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/main/LICENSE"
+      "license_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/main/LICENSE",
+      "file": "qwen3vl_32b_minimax_h3_int8_convrot.safetensors"
     }
   ]
 }

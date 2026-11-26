@@ -791,11 +791,26 @@ def resolve(name: str, params: dict | None = None) -> dict:
     params = dict(params or {})
     if name not in TEMPLATES:
         raise ValueError(f"未知工作流模板: {name!r}；可选：{', '.join(TEMPLATES)}")
+    auto_gguf = False
+    if name == "minimax_h3_image":
+        _models = os.path.join(getattr(_config, "COMFY_ROOT", ""), "models", "diffusion_models")
+        _int8 = os.path.join(_models, UNET_IMAGE_INT8)
+        _q4 = os.path.join(_models, UNET_IMAGE_GGUF)
+        try:
+            _int8_ok = os.path.isfile(_int8) and os.path.getsize(_int8) > 15 * 1024 ** 3
+            _q4_ok = os.path.isfile(_q4) and os.path.getsize(_q4) > 8 * 1024 ** 3
+        except OSError:
+            _int8_ok = _q4_ok = False
+        if not _int8_ok and _q4_ok:
+            name = "minimax_h3_image_gguf"
+            auto_gguf = True
     meta = TEMPLATES[name]
     settings = _settings()
     generation = settings.get("generation") or {}
     profiles = generation.get("profiles") or {}
     warnings: list[str] = []
+    if auto_gguf:
+        warnings.append("INT8 H3 Image 权重未安装，已自动使用 GGUF Q4_K_M。")
 
     if params.get("negative_prompt"):
         warnings.append("H3 没有 CFG/负面提示词通道，negative_prompt 已忽略。")
