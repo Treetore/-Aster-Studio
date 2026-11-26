@@ -14,7 +14,7 @@ const T={
   demo:false,demoTimers:[],demoInterval:null,autoScroll:true,jobs:[],filter:'all',
   renderQueued:false,lastLogKey:'',logStore:{}
 };
-const FRIENDLY={minimax_h3_t2v:'文生视频',minimax_h3_fl2v:'首尾帧',minimax_h3_r2v:'参考图',qwen_image:'Qwen 文生图',qwen_image_edit:'Qwen 图像编辑',minimax_h3_image:'H3 静帧'};
+const FRIENDLY={minimax_h3_t2v:'文生视频',minimax_h3_fl2v:'首尾帧',minimax_h3_r2v:'参考图',qwen_image:'Qwen 文生图',qwen_image_edit:'Qwen 图像编辑',minimax_h3_image:'H3 Image INT8',minimax_h3_image_gguf:'H3 Image GGUF'};
 const NODE_STAGE={'1':'load','2':'load','3':'load','4':'load','10':'encode','9':'sample','11':'decode','12':'decode','13':'save','14':'save'};
 const NODE_NAME={'1':'加载 UNet','2':'加载文本编码器','3':'加载视频 VAE','4':'加载音频 VAE','10':'编码提示词与潜变量','9':'扩散采样','11':'视频 VAE 解码','12':'音频 VAE 解码','13':'封装音视频','14':'保存视频'};
 

@@ -121,6 +121,66 @@
       "homepage": "https://huggingface.co/models?search=MOSS-Image",
       "license": "上游模型许可（权重不随仓库分发）",
       "license_url": "https://huggingface.co/models?search=MOSS-Image"
+    },
+    {
+      "id": "h3-image-int8",
+      "name": "MiniMax H3 Image INT8（Jianqiao1 WaveCut）",
+      "kind": "image",
+      "target": "diffusion_models",
+      "size_gb": 19.5,
+      "filename": "minimax_h3_image_wavecut_style_pruned_reference_int8_convrot.safetensors",
+      "url": "https://huggingface.co/Jianqiao1/MiniMax-H3-Image-Lossless-Pruned-ComfyUI/resolve/main/minimax_h3_image_wavecut_style_pruned_reference_int8_convrot.safetensors",
+      "homepage": "https://huggingface.co/Jianqiao1/MiniMax-H3-Image-Lossless-Pruned-ComfyUI",
+      "license": "MiniMax H3 Image Community License",
+      "license_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/main/LICENSE"
+    },
+    {
+      "id": "h3-image-gguf-q4",
+      "name": "MiniMax H3 Image GGUF Q4_K_M（Infinix）",
+      "kind": "image",
+      "target": "diffusion_models",
+      "size_gb": 10.8,
+      "filename": "MiniMax-H3-Image-Pruned-Q4_K_M.gguf",
+      "url": "https://huggingface.co/Infinix-io/MiniMax-H3-Image-GGUF/resolve/main/MiniMax-H3-Image-Pruned-Q4_K_M.gguf",
+      "homepage": "https://huggingface.co/Infinix-io/MiniMax-H3-Image-GGUF",
+      "license": "MiniMax H3 Image Community License",
+      "license_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/main/LICENSE"
+    },
+    {
+      "id": "h3-image-gguf-q2",
+      "name": "MiniMax H3 Image GGUF Q2_K（8GB 低配）",
+      "kind": "image",
+      "target": "diffusion_models",
+      "size_gb": 6.4,
+      "filename": "MiniMax-H3-Image-Pruned-Q2_K.gguf",
+      "url": "https://huggingface.co/Infinix-io/MiniMax-H3-Image-GGUF/resolve/main/MiniMax-H3-Image-Pruned-Q2_K.gguf",
+      "homepage": "https://huggingface.co/Infinix-io/MiniMax-H3-Image-GGUF",
+      "license": "MiniMax H3 Image Community License",
+      "license_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/main/LICENSE"
+    },
+    {
+      "id": "h3-image-vae",
+      "name": "MiniMax H3 Image VAE FP16",
+      "kind": "image",
+      "target": "vae",
+      "size_gb": 1.1,
+      "filename": "minimax_h3_image_vae_fp16.safetensors",
+      "url": "https://huggingface.co/Comfy-Org/MiniMax-H3-Image/resolve/main/vae/minimax_h3_image_vae_fp16.safetensors",
+      "homepage": "https://huggingface.co/Comfy-Org/MiniMax-H3-Image",
+      "license": "MiniMax H3 Image Community License",
+      "license_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/main/LICENSE"
+    },
+    {
+      "id": "h3-image-te-int8",
+      "name": "Qwen3-VL 32B H3 Image INT8 文本编码器",
+      "kind": "image",
+      "target": "text_encoders",
+      "size_gb": 25.3,
+      "filename": "qwen3vl_32b_minimax_h3_int8_convrot.safetensors",
+      "url": "https://huggingface.co/Comfy-Org/MiniMax-H3-Image/resolve/main/text_encoders/qwen3vl_32b_minimax_h3_int8_convrot.safetensors",
+      "homepage": "https://huggingface.co/Comfy-Org/MiniMax-H3-Image",
+      "license": "MiniMax H3 Image Community License",
+      "license_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/main/LICENSE"
     }
   ]
 }

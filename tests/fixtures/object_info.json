@@ -1308,7 +1308,8 @@
      [
       "minimax_h3_fl2va_pruned_fp8_scaled.safetensors",
       "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
-      "minimax_h3_ref2va_pruned_int8_convrot.safetensors"
+      "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+      "minimax_h3_image_wavecut_style_pruned_reference_int8_convrot.safetensors"
      ]
     ],
     "weight_dtype": [
@@ -1456,11 +1457,7 @@
      [
       "minimax_h3_audio_vae_fp32.safetensors",
       "minimax_h3_video_vae_fp16.safetensors",
-      "taesdxl",
-      "taef1",
-      "taesd",
-      "taesd3",
-      "pixel_space"
+      "minimax_h3_image_vae_fp16.safetensors"
      ]
     ]
    }
@@ -1531,5 +1528,127 @@
   "category": "image",
   "description": "",
   "output_node": true
+ },
+ "UnetLoaderGGUF": {
+  "input": {
+   "required": {
+    "unet_name": [
+     [
+      "MiniMax-H3-Image-Pruned-Q4_K_M.gguf"
+     ]
+    ]
+   }
+  },
+  "output": [
+   "MODEL"
+  ],
+  "output_name": [
+   "MODEL"
+  ],
+  "output_node": false,
+  "name": "UnetLoaderGGUF"
+ },
+ "MiniMaxH3ImageConditioning": {
+  "input": {
+   "required": {
+    "clip": [
+     "CLIP"
+    ],
+    "vae": [
+     "VAE"
+    ],
+    "prompt": [
+     "STRING"
+    ],
+    "width": [
+     "INT"
+    ],
+    "height": [
+     "INT"
+    ]
+   },
+   "optional": {
+    "images.image_0": [
+     "IMAGE"
+    ]
+   }
+  },
+  "output": [
+   "CONDITIONING",
+   "LATENT"
+  ],
+  "output_name": [
+   "positive",
+   "LATENT"
+  ],
+  "output_node": false,
+  "name": "MiniMaxH3ImageConditioning"
+ },
+ "ConditioningZeroOut": {
+  "input": {
+   "required": {
+    "conditioning": [
+     "CONDITIONING"
+    ]
+   }
+  },
+  "output": [
+   "CONDITIONING"
+  ],
+  "output_name": [
+   "CONDITIONING"
+  ],
+  "output_node": false,
+  "name": "ConditioningZeroOut"
+ },
+ "KSampler": {
+  "input": {
+   "required": {
+    "model": [
+     "MODEL"
+    ],
+    "positive": [
+     "CONDITIONING"
+    ],
+    "negative": [
+     "CONDITIONING"
+    ],
+    "latent_image": [
+     "LATENT"
+    ],
+    "seed": [
+     "INT"
+    ],
+    "steps": [
+     "INT"
+    ],
+    "cfg": [
+     "FLOAT"
+    ],
+    "sampler_name": [
+     [
+      "euler",
+      "res_multistep"
+     ]
+    ],
+    "scheduler": [
+     [
+      "simple",
+      "normal"
+     ]
+    ],
+    "denoise": [
+     "FLOAT"
+    ]
+   }
+  },
+  "output": [
+   "LATENT"
+  ],
+  "output_name": [
+   "LATENT"
+  ],
+  "output_node": false,
+  "name": "KSampler"
  }
 }

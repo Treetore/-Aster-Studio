@@ -2,10 +2,10 @@
   "1": {
     "class_type": "UNETLoader",
     "inputs": {
-      "unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+      "unet_name": "minimax_h3_image_wavecut_style_pruned_reference_int8_convrot.safetensors",
       "weight_dtype": "default"
     },
-    "_meta": {"title": "UNETLoader"}
+    "_meta": {"title": "UNETLoader (H3 Image INT8)"}
   },
   "2": {
     "class_type": "CLIPLoader",
@@ -19,64 +19,43 @@
   "3": {
     "class_type": "VAELoader",
     "inputs": {
-      "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+      "vae_name": "minimax_h3_image_vae_fp16.safetensors"
     },
-    "_meta": {"title": "VAELoader (video)"}
-  },
-  "5": {
-    "class_type": "RandomNoise",
-    "inputs": {
-      "noise_seed": 0
-    },
-    "_meta": {"title": "RandomNoise"}
-  },
-  "6": {
-    "class_type": "KSamplerSelect",
-    "inputs": {
-      "sampler_name": "res_multistep"
-    },
-    "_meta": {"title": "KSamplerSelect"}
-  },
-  "7": {
-    "class_type": "BasicScheduler",
-    "inputs": {
-      "model": ["1", 0],
-      "scheduler": "simple",
-      "steps": 8,
-      "denoise": 1.0
-    },
-    "_meta": {"title": "BasicScheduler"}
-  },
-  "8": {
-    "class_type": "BasicGuider",
-    "inputs": {
-      "model": ["1", 0],
-      "conditioning": ["10", 0]
-    },
-    "_meta": {"title": "BasicGuider"}
-  },
-  "9": {
-    "class_type": "SamplerCustomAdvanced",
-    "inputs": {
-      "noise": ["5", 0],
-      "guider": ["8", 0],
-      "sampler": ["6", 0],
-      "sigmas": ["7", 0],
-      "latent_image": ["10", 1]
-    },
-    "_meta": {"title": "SamplerCustomAdvanced"}
+    "_meta": {"title": "VAELoader (H3 Image)"}
   },
   "10": {
-    "class_type": "MiniMaxH3ImageToVideo",
+    "class_type": "MiniMaxH3ImageConditioning",
     "inputs": {
       "clip": ["2", 0],
       "vae": ["3", 0],
       "prompt": "",
-      "width": 768,
-      "height": 768,
-      "length": 5
+      "width": 2048,
+      "height": 2048
     },
-    "_meta": {"title": "MiniMaxH3ImageToVideo"}
+    "_meta": {"title": "MiniMax H3 Image Conditioning"}
+  },
+  "6": {
+    "class_type": "ConditioningZeroOut",
+    "inputs": {
+      "conditioning": ["10", 0]
+    },
+    "_meta": {"title": "Conditioning Zero Out"}
+  },
+  "9": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["1", 0],
+      "positive": ["10", 0],
+      "negative": ["6", 0],
+      "latent_image": ["10", 1],
+      "seed": 0,
+      "steps": 6,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1.0
+    },
+    "_meta": {"title": "KSampler"}
   },
   "11": {
     "class_type": "VAEDecode",
@@ -86,20 +65,11 @@
     },
     "_meta": {"title": "VAEDecode"}
   },
-  "13": {
-    "class_type": "ImageFromBatch",
-    "inputs": {
-      "image": ["11", 0],
-      "batch_index": 0,
-      "length": 1
-    },
-    "_meta": {"title": "ImageFromBatch (first frame)"}
-  },
   "12": {
     "class_type": "SaveImage",
     "inputs": {
-      "images": ["13", 0],
-      "filename_prefix": "image/MiniMax_H3"
+      "images": ["11", 0],
+      "filename_prefix": "image/MiniMax_H3_Image"
     },
     "_meta": {"title": "SaveImage"}
   }

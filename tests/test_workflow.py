@@ -141,12 +141,12 @@ class TemplateFileTests(unittest.TestCase):
         self.object_info = load_object_info()
 
     def test_three_template_files_load(self):
-        self.assertEqual(len(wf.TEMPLATES), 9)
+        self.assertEqual(len(wf.TEMPLATES), 10)
         for name, meta in wf.TEMPLATES.items():
             path = os.path.join(PKG_DIR, "templates", meta["template_file"])
             self.assertTrue(os.path.isfile(path), path)
             api = wf.load_template(name)
-            self.assertGreaterEqual(len(api), 10)
+            self.assertGreaterEqual(len(api), 8)
             for node_id, node in api.items():
                 self.assertIsInstance(node_id, str)
                 self.assertIn("class_type", node)

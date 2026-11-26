@@ -51,6 +51,9 @@ VAE_VIDEO = "minimax_h3_video_vae_fp16.safetensors"
 VAE_AUDIO = "minimax_h3_audio_vae_fp32.safetensors"
 UNET_FL2V = "minimax_h3_fl2va_pruned_int8_convrot.safetensors"
 UNET_REF2V = "minimax_h3_ref2va_pruned_int8_convrot.safetensors"
+UNET_IMAGE_INT8 = "minimax_h3_image_wavecut_style_pruned_reference_int8_convrot.safetensors"
+UNET_IMAGE_GGUF = "MiniMax-H3-Image-Pruned-Q4_K_M.gguf"
+VAE_IMAGE = "minimax_h3_image_vae_fp16.safetensors"
 TURBO_LORA_4STEP = "minimax_h3\\minimax_h3_fl2v_lightx2v_turbo_4step_v0.1_comfy.safetensors"
 TURBO_LORA_8STEP = "minimax_h3\\minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors"
 
@@ -115,22 +118,38 @@ TEMPLATES = {
     },
     "minimax_h3_image": {
         "name": "minimax_h3_image",
-        "title": "MiniMax H3 图像生成 (still)",
+        "title": "MiniMax H3 Image（INT8 高质量）",
         "description": (
-            "text-to-image：用 H3 omni-modal 模型生成静帧（最小 5 帧 latent，VAEDecode 后 SaveImage 输出 PNG），"
-            "同一 fl2va 模型与文本编码器；支持 optimize / LoRA / 模型覆盖，不产出音频与视频。"
+            "H3-Image 原生 text-to-image：Jianqiao1 WaveCut-style pruned reference INT8 ConvRot，"
+            "MiniMaxH3ImageConditioning + KSampler（euler/simple/6 steps/cfg 1）+ H3 Image VAE。"
+            "适合高显存/大内存主机，质量优先。"
         ),
-        "model": UNET_FL2V,
-        "node_class": "MiniMaxH3ImageToVideo",
+        "model": UNET_IMAGE_INT8,
+        "node_class": "MiniMaxH3ImageConditioning",
         "template_file": "minimax_h3_image.api.json",
-        "default_prefix": "image/MiniMax_H3",
+        "default_prefix": "image/MiniMax_H3_Image",
         "supports_refs": False,
-        "supports_frames": True,
-        "supports_lora": True,
-        "default_lora": TURBO_LORA_4STEP,
+        "supports_frames": False,
+        "supports_lora": False,
         "kind": "image",
-        "default_size": (768, 768),
-        "max_length": 39,
+        "default_size": (2048, 2048),
+    },
+    "minimax_h3_image_gguf": {
+        "name": "minimax_h3_image_gguf",
+        "title": "MiniMax H3 Image（GGUF Q4，低显存）",
+        "description": (
+            "H3-Image GGUF Q4_K_M（Infinix-io），UnetLoaderGGUF 加载；"
+            "共用 H3 Image VAE 与文本编码器；适合 8GB 显存/32GB 内存主机。"
+        ),
+        "model": UNET_IMAGE_GGUF,
+        "node_class": "MiniMaxH3ImageConditioning",
+        "template_file": "minimax_h3_image_gguf.api.json",
+        "default_prefix": "image/MiniMax_H3_Image",
+        "supports_refs": False,
+        "supports_frames": False,
+        "supports_lora": False,
+        "kind": "image",
+        "default_size": (2048, 2048),
     },
     "qwen_image": {
         "name": "qwen_image",
@@ -616,6 +635,14 @@ def _find_node_id(api: dict, class_type: str) -> str:
     raise ValueError(f"模板中缺少节点 {class_type}")
 
 
+def _find_model_loader(api: dict) -> str:
+    for class_type in ("UNETLoader", "UnetLoaderGGUF"):
+        for node_id, node in api.items():
+            if node.get("class_type") == class_type:
+                return node_id
+    raise ValueError("模板中缺少模型加载节点（UNETLoader / UnetLoaderGGUF）")
+
+
 def _find_moss_node(api: dict, which: str, required: bool = True) -> str | None:
     """Find MOSS CLIPTextEncode by node title (Positive/Negative)."""
     for node_id, node in api.items():
@@ -651,7 +678,7 @@ def _safe_find(api: dict, class_type: str) -> str | None:
 def _find_cond_id(api: dict) -> str:
     for node_id, node in api.items():
         if node.get("class_type") in ("MiniMaxH3ReferenceToVideo", "MiniMaxH3ImageToVideo",
-                                      "TextEncodeQwenImage21"):
+                                      "MiniMaxH3ImageConditioning", "TextEncodeQwenImage21"):
             return node_id
     raise ValueError("模板中缺少条件节点（MiniMaxH3* 或 TextEncodeQwenImage21）")
 
@@ -954,7 +981,7 @@ def resolve(name: str, params: dict | None = None) -> dict:
     vae_name = params.get("vae_name")
     audio_vae_name = params.get("audio_vae_name")
     if unet_name:
-        api[_find_node_id(api, "UNETLoader")]["inputs"]["unet_name"] = str(unet_name)
+        api[_find_model_loader(api)]["inputs"]["unet_name"] = str(unet_name)
     if clip_name:
         api[_find_node_id(api, "CLIPLoader")]["inputs"]["clip_name"] = str(clip_name)
     if vae_name or audio_vae_name:
@@ -1014,7 +1041,9 @@ def resolve(name: str, params: dict | None = None) -> dict:
     else:
         cond_inputs["width"] = width
         cond_inputs["height"] = height
-        cond_inputs["length"] = length
+        if meta.get("supports_frames") or meta["node_class"] in (
+                "MiniMaxH3ImageToVideo", "MiniMaxH3ReferenceToVideo"):
+            cond_inputs["length"] = length
     if meta["node_class"] == "MiniMaxH3ReferenceToVideo":
         cond_inputs["ref_image_size"] = ref_image_size
 
@@ -1102,7 +1131,7 @@ def resolve(name: str, params: dict | None = None) -> dict:
             cond_inputs[f"images.image_{index + 1}"] = [node_id, 0]
 
     if lora_name:
-        unet_id = _find_node_id(api, "UNETLoader")
+        unet_id = _find_model_loader(api)
         lora_id = "90"
         api[lora_id] = {
             "class_type": "LoraLoaderModelOnly",
@@ -1129,7 +1158,7 @@ def resolve(name: str, params: dict | None = None) -> dict:
     if optimize not in ("off", "sage", "lowmem", "max"):
         warnings.append(f"optimize={optimize} 非法，已按 off 处理。")
         optimize = "off"
-    unet_id = _find_node_id(api, "UNETLoader")
+    unet_id = _find_model_loader(api)
     model_src = lora_id if lora_name else unet_id
     opt_specs: list[tuple[str, dict]] = []
     if optimize in ("sage", "lowmem", "max"):
