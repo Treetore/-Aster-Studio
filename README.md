@@ -2,7 +2,7 @@
 
 > 面向单机工作站的本地 AI 视频 / 图像生成工作台：以用户自行安装的 ComfyUI 为推理后端，提供 Web 工作台、桌面启动器、MCP 接口、任务队列、资源守卫、模型目录与 ffmpeg 后期处理。
 
-- 社群反馈：**[QQ 群](https://qm.qq.com/q/Ww5b5dF5mO)** · [Issues](https://github.com/Treetore/-Aster-Studio/issues)
+- 社群反馈：**[QQ 群](https://qm.qq.com/q/Ww5b5dF5mO)** · [Issues](https://github.com/Treetore/Aster-Studio/issues)
 
 Aster Studio 是面向单台本地工作站的 AI 视频与图像生成工作台。项目以用户自行安装的 ComfyUI 为推理后端，提供 Web 工作台、桌面启动器、MCP 工具接口、任务队列、资源守卫、模型目录管理与 ffmpeg 后期处理能力。
 
@@ -110,7 +110,7 @@ FastAPI Webapp (8190) ── MCP Server (stdio) ── ComfyUI (8188)
 
 ```powershell
 # 1. 获取代码
-git clone https://github.com/Treetore/-Aster-Studio.git
+git clone https://github.com/Treetore/Aster-Studio.git
 cd -- -Aster-Studio
 
 # 2. 安装运行时依赖

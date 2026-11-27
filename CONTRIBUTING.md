@@ -39,7 +39,7 @@ Requirements: Windows 10/11, Python 3.10 or newer (CI uses 3.12), and a ComfyUI
 installation only for manual end-to-end runs.
 
 ```powershell
-git clone https://github.com/Treetore/-Aster-Studio.git
+git clone https://github.com/Treetore/Aster-Studio.git
 cd -- -Aster-Studio
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1

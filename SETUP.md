@@ -17,7 +17,7 @@
 ## 2. 获取代码
 
 ```powershell
-git clone https://github.com/Treetore/-Aster-Studio.git
+git clone https://github.com/Treetore/Aster-Studio.git
 cd -- -Aster-Studio
 ```
 
