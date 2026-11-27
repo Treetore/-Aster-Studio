@@ -50,6 +50,8 @@ def styles() -> list[dict]:
             "reference": s.get("reference"),
             "generation_name": s.get("generation_name"),
             "traits": s.get("traits"),
+            "group_zh": str(s.get("group") or "").split("/")[0].strip(),
+            "label_zh": f"{s.get('number')} · {str(s.get('group') or '').split('/')[0].strip()} · {s.get('generation_name')}",
         })
     return out
 

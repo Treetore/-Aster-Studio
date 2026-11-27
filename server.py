@@ -371,6 +371,15 @@ class ComfyService:
         workflow = self._workflow()
         return {"ok": True, "templates": workflow.list_templates()}
 
+    def tool_handraw_prompt(self, styles: list[str], colors: list[str] | None = None,
+                            theme: str = "", lang: str = "zh") -> dict:
+        """基于 handraw-style 规则生成/优化提示词（不调用图像模型）。"""
+        import handraw
+        try:
+            return {"ok": True, **handraw.build_prompt(styles, colors or [], theme, lang)}
+        except Exception as exc:  # noqa: BLE001
+            return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+
     def tool_plan(self, template: str, params: dict | None = None) -> dict:
         workflow = self._workflow()
         params = dict(params or {})
@@ -1027,6 +1036,20 @@ def build_server() -> tuple[McpServer, ComfyService]:
         "列出内置视频工作流模板（minimax_h3_r2v / fl2v / t2v）及参数面。",
         args_schema({}),
     )(service.tool_templates)
+
+    srv.tool(
+        "handraw_prompt",
+        "基于已安装的 handraw-style Skill 生成/优化生图提示词（372 风格 + 36 主题色），不提交生成。",
+        args_schema(
+            {
+                "styles": {"type": "array", "items": {"type": "string"}, "description": "风格编号，如 FA-001"},
+                "colors": {"type": "array", "items": {"type": "string"}, "description": "主题色编号，如 C-01"},
+                "theme": {"type": "string", "description": "画面主题"},
+                "lang": {"type": "string", "default": "zh"},
+            },
+            ["styles"],
+        ),
+    )(service.tool_handraw_prompt)
 
     srv.tool(
         "plan",

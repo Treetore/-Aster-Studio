@@ -32,3 +32,13 @@ POST /api/handraw/prompt
 
 Skill 内容版权归原作者 yang0 及上游贡献者，遵循该仓库的 LICENSE。  
 本项目的 `handraw.py` 仅读取其 JSON 元数据并组装提示词。
+
+## Agent / MCP 工具
+
+MCP 工具 `handraw_prompt` 可直接被 agent 调用：
+
+```json
+{"styles":["FA-001"],"colors":["C-01"],"theme":"雨夜街角的猫","lang":"zh"}
+```
+
+返回基于 handraw-style 规则的优化提示词，不提交图像生成。

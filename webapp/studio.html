@@ -252,18 +252,19 @@
             <div class="m" data-imode="moss_image">MOSS 文生图</div>
             <div class="m" data-imode="moss_image_edit">MOSS 编辑</div>
             <div class="m" data-imode="qwen_image_edit">图像编辑</div>
-            <div class="m" data-imode="h3_image">H3 静帧</div>
+            <div class="m" data-imode="h3_image">H3 Image INT8</div>
+          <div class="m" data-imode="h3_image_gguf">H3 Image Q4</div>
           </div>
           <label class="lab" id="ipromptLab">提示词</label>
           <textarea id="iprompt" placeholder="示例：电影感静物，红苹果放在旧木桌上，晨光斜射，浅景深，胶片颗粒"></textarea>
           <div class="card" style="margin-top:10px;padding:10px;border:1px solid var(--line)">
             <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
-              <label class="lab" style="margin:0">手绘风格</label>
-              <select id="handrawStyle" style="flex:1;min-width:180px"><option value="">加载中…</option></select>
+              <label class="lab" style="margin:0">手绘风格库</label>
+              <select id="handrawStyle" style="flex:1;min-width:180px"><option value="">选择风格编号…</option></select>
               <select id="handrawColor" style="min-width:130px"><option value="">无主题色</option></select>
-              <button class="btn sm" id="handrawApply" type="button">套用风格</button>
+              <button class="btn sm" id="handrawApply" type="button">优化提示词</button>
             </div>
-            <div class="muted" id="handrawMsg" style="font-size:11px;margin-top:5px">选择编号风格后，将当前提示词作为主题生成手绘风格提示词</div>
+            <div class="muted" id="handrawMsg" style="font-size:11px;margin-top:5px">选择风格与主题色后，将当前提示词作为主题，由 handraw-style 规则优化</div>
           </div>
           <div id="irefArea" class="hidden">
             <label class="lab">参考图（1–10 张，仅编辑模式）</label>

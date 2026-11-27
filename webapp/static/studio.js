@@ -410,7 +410,7 @@ async function loadHandrawCatalog(){
     const r=await api('/api/handraw/catalog');
     if(!r.ok)throw new Error(r.error||'catalog failed');
     const ss=$('handrawStyle'),cs=$('handrawColor');
-    if(ss){ss.innerHTML='<option value="">选择风格…</option>'+r.styles.map(s=>'<option value="'+esc(s.number)+'">'+esc(s.number+' · '+s.generation_name)+'</option>').join('')}
+    if(ss){ss.innerHTML='<option value="">选择风格…</option>'+r.styles.map(s=>'<option value="'+esc(s.number)+'">'+esc(s.label_zh||s.number+' · '+s.generation_name)+'</option>').join('')}
     if(cs){cs.innerHTML='<option value="">无主题色</option>'+r.colors.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.id+' · '+(c.name_zh||c.name_en||''))+'</option>').join('')}
     HANDRAW_LOADED=true;
   }catch(e){$('handrawMsg').textContent='手绘风格加载失败：'+e.message}
@@ -535,7 +535,7 @@ async function planPreview(){
 
 /* ---------- 图像生成（专用表单/进度） ---------- */
 const I={mode:'qwen_image',refs:[],loaded:false};
-const IMG_TPL={qwen_image:'qwen_image',qwen_image_edit:'qwen_image_edit',h3_image:'minimax_h3_image',moss_image:'moss_image',moss_image_edit:'moss_image_edit'};
+const IMG_TPL={qwen_image:'qwen_image',qwen_image_edit:'qwen_image_edit',h3_image:'minimax_h3_image',h3_image_gguf:'minimax_h3_image_gguf',moss_image:'moss_image',moss_image_edit:'moss_image_edit'};
 function planMsgClear(){const e=$('igenMsg');if(e)e.textContent=''}
 function setImgMode(m){
   I.mode=m;
@@ -543,8 +543,8 @@ function setImgMode(m){
   const edit=(m==='qwen_image_edit');
   $('irefArea').classList.toggle('hidden',!edit);
   $('ipromptLab').textContent=edit?'编辑指令':'提示词';
-  $('isteps').value=(m==='h3_image')?8:((m==='moss_image_edit')?30:25);
-  isetSize(m==='h3_image'?768:1024,m==='h3_image'?768:1024);
+  $('isteps').value=(m==='h3_image'||m==='h3_image_gguf')?6:((m==='moss_image_edit')?30:25);
+  isetSize(m==='h3_image'||m==='h3_image_gguf'?1024:1024,m==='h3_image'||m==='h3_image_gguf'?1024:1024);
   const cfgWrap=$('icfg');if(cfgWrap){cfgWrap.disabled=(m!=='moss_image'&&m!=='moss_image_edit');cfgWrap.value=(m==='moss_image_edit')?'4.0':'2.5';}
   planMsgClear();
 }
@@ -573,7 +573,7 @@ function imgParams(){
     p.images=I.refs.map(x=>x.name);
     p.cache_device=$('icacheDev').value;p.cache_dtype=$('icacheDT').value;
   }
-  if(I.mode==='h3_image')p.optimize='max';
+  if(I.mode==='h3_image'||I.mode==='h3_image_gguf')p.optimize='max';
   if(I.mode==='moss_image'||I.mode==='moss_image_edit'){const cf=parseFloat($('icfg').value);if(!isNaN(cf))p.cfg=cf;}
   if(I.mode==='moss_image_edit'){p.ref_images=I.refs.map(x=>x.name);}
   const neg=$('ineg').value.trim();if(neg)p.negative_prompt=neg;
@@ -593,7 +593,7 @@ async function submitImage(){
     if(!r.ok){
       const errs=(r.validation?.errors||[]).slice(0,2).join('；');
       const gr=(r.guard?.reasons||[]).slice(0,2).join('；');
-      const pxLimit=(I.mode==='h3_image')?2097152:4194304;
+      const pxLimit=(I.mode==='h3_image'||I.mode==='h3_image_gguf')?4194304:4194304;
       const pxHint=(w*h>pxLimit)?('当前 '+w+'×'+h+'='+(w*h)+' px 超过上限 '+pxLimit+' px；'):'';
       $('igenMsg').textContent='失败：'+pxHint+(r.error||r.reason||'')+(gr?' · '+gr:'')+(errs?' · '+errs:'');
       toast('生成失败');return
