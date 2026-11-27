@@ -488,11 +488,9 @@ def api_handraw_agent(req: HandrawAgentReq) -> dict:
 
 @app.post("/api/handraw/translate")
 def api_handraw_translate() -> dict:
-    try:
-        items = [{"number": s["number"], "name": s["generation_name"]} for s in handraw.styles()]
-        return agent.translate_names(items)
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+    items = handraw.styles()
+    return {"ok": True, "translated": sum(1 for s in items if s.get("generation_name_zh")),
+            "total": len(items), "local": True}
 
 
 @app.get("/api/projects")

@@ -16,6 +16,7 @@ PACKAGE_CANDIDATES = [
 ]
 _cache: dict[str, object] = {}
 ZH_CACHE = ROOT / "data" / "handraw_zh.json"
+BUNDLED_ZH = ROOT / "optional" / "skills" / "handraw-style" / "handraw_zh.json"
 
 
 def package_root() -> Path | None:
@@ -47,7 +48,7 @@ def styles() -> list[dict]:
     zh = {}
     try:
         import json as _json
-        zh = _json.loads(ZH_CACHE.read_text(encoding="utf-8")) if ZH_CACHE.is_file() else {}
+        zh = _json.loads((ZH_CACHE if ZH_CACHE.is_file() else BUNDLED_ZH).read_text(encoding="utf-8")) if (ZH_CACHE.is_file() or BUNDLED_ZH.is_file()) else {}
     except Exception:
         zh = {}
     for s in _load("styles.json"):
@@ -62,7 +63,7 @@ def styles() -> list[dict]:
             "generation_name_zh": zh_name,
             "traits": s.get("traits"),
             "group_zh": group_zh,
-            "label_zh": f"{number} · {group_zh} · {(zh_name + '（' + str(s.get('generation_name')) + '）') if zh_name else s.get('generation_name')}",
+            "label_zh": f"{number} · {group_zh} · {(zh_name or s.get('generation_name'))}",
         })
     return out
 

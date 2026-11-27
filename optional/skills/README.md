@@ -49,6 +49,6 @@ MCP 工具 `handraw_prompt` 可直接被 agent 调用：
 
 - `POST /api/agent/key`：保存 Key（本地 `data/deepseek_key.txt`，不提交仓库）
 - `POST /api/handraw/agent`：基于 handraw-style 元数据调用 DeepSeek 优化提示词
-- `POST /api/handraw/translate`：批量翻译 372 个风格名，缓存到 `data/handraw_zh.json`
+- `POST /api/handraw/translate`：读取本地 372 个中文名（已随 Skill 缓存，无需 Key）
 
-未配置 Key 时，规则优化与风格目录仍可用；DeepSeek 优化会返回明确的未配置提示。
+风格名中文翻译已内置在 `handraw_zh.json`，不需要 Key。DeepSeek Key 仅用于提示词补全/优化；未配置时规则优化仍可用。

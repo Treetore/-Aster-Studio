@@ -422,16 +422,6 @@ async function saveDeepseekKey(){
   const key=$('deepseekKey').value.trim();if(!key){$('agentMsg').textContent='请输入 DeepSeek API Key';return}
   try{const r=await api('/api/agent/key',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key})});$('agentMsg').textContent='Key 已保存：'+(r.masked||'');$('deepseekKey').value=''}catch(e){$('agentMsg').textContent='保存失败：'+e.message}
 }
-async function translateHandraw(){
-  try{
-    if($('deepseekKey').value.trim())await saveDeepseekKey();
-    $('agentMsg').textContent='正在翻译 372 个风格名…';
-    const r=await api('/api/handraw/translate',{method:'POST'});
-    if(!r.ok)throw new Error(r.error||'翻译失败');
-    HANDRAW_LOADED=false;await loadHandrawCatalog();
-    $('agentMsg').textContent='风格名已翻译：'+r.translated+'/'+r.total;
-  }catch(e){$('agentMsg').textContent='翻译失败：'+e.message}
-}
 async function agentHandraw(){
   const style=$('handrawStyle')?.value;
   if(!style){$('agentMsg').textContent='请先选择手绘风格编号';return}
@@ -445,7 +435,6 @@ async function agentHandraw(){
   }catch(e){$('agentMsg').textContent='优化失败：'+e.message}
 }
 if($('deepseekSave'))$('deepseekSave').onclick=saveDeepseekKey;
-if($('handrawTranslate'))$('handrawTranslate').onclick=translateHandraw;
 if($('handrawAgent'))$('handrawAgent').onclick=agentHandraw;
 
 async function applyHandraw(){
