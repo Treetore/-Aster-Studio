@@ -43,6 +43,7 @@ import model_policy  # noqa: E402
 import workflow  # noqa: E402
 import notify
 import workspace
+import handraw
 try:
     import i18n
 except Exception:  # noqa: BLE001
@@ -418,6 +419,27 @@ def api_models_market_download_status() -> dict:
         from setup import market
         return {"ok": True, **market.status()}
     except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": str(exc)}
+
+
+class HandrawReq(BaseModel):
+    styles: list[str] = []
+    colors: list[str] = []
+    theme: str = ""
+    lang: str = "zh"
+
+
+@app.get("/api/handraw/catalog")
+def api_handraw_catalog() -> dict:
+    return {"ok": True, "styles": handraw.styles(), "colors": handraw.colors(),
+            "installed": bool(handraw.package_root())}
+
+
+@app.post("/api/handraw/prompt")
+def api_handraw_prompt(req: HandrawReq) -> dict:
+    try:
+        return {"ok": True, **handraw.build_prompt(req.styles, req.colors, req.theme, req.lang)}
+    except ValueError as exc:
         return {"ok": False, "error": str(exc)}
 
 

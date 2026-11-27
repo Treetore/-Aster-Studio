@@ -46,6 +46,7 @@ Aster Studio 将 ComfyUI 的模型推理能力封装为可日常使用的本地�
 | 长片与超分 | 分段生成、首帧衔接、拼接；视频超分端点 | `tools/segment_film.py`、`tools/auto_film.py`、`tools/upscale_*.py` |
 | 聊天桥接接口 | 目录、提交、结果轮询、令牌化媒体下载、健康检查、IP 白名单、访问日志 | `webapp/app.py` |
 | 隧道控制 | 启动器内 cloudflared 启停与状态，配合白名单与令牌对外暴露 | `launcher/`、`tools/tunnel.ps1` |
+| 手绘风格 Skill | 372 风格、36 主题色、170 排版；已集成生图页 | `optional/skills/handraw-style/` |
 | 可选聊天插件 | AstrBot 插件源码，默认不安装 | `optional/astrbot_plugin_comfy_bridge/` |
 
 ## 未实现与限制

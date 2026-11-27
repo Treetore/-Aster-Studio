@@ -105,7 +105,7 @@ function setTab(name){
   if(name==='tasks'){renderLive();renderLogs();loadTasks()}
   if(name==='upscale')refreshUpscaleJobs();
   if(name==='edit')buildEditForm();
-  if(name==='image'){initImagePage()}
+  if(name==='image'){initImagePage();loadHandrawCatalog()}
   if(name==='film'){pollFilm()}
   if(name==='settings')loadSettings();
   if(name==='models')loadModels();
@@ -403,6 +403,31 @@ document.addEventListener('click',e=>{if(!$('atPop').contains(e.target)&&e.targe
 const TPL_MAP={t2v:'minimax_h3_t2v',fl2v:'minimax_h3_fl2v',r2v:'minimax_h3_r2v',qwen_image:'qwen_image',qwen_edit:'qwen_image_edit',h3_image:'minimax_h3_image'};
 function isImgMode(m){return m==='qwen_image'||m==='qwen_edit'||m==='h3_image'}
 function retrySafe(w,h){const s=$('resPreset');const v=w+'x'+h;if([...s.options].some(o=>o.value===v)){setRes(v)}else{$('cw').value=w;$('ch').value=h;setRes('custom')}submitGenerate()}
+let HANDRAW_LOADED=false;
+async function loadHandrawCatalog(){
+  if(HANDRAW_LOADED)return;
+  try{
+    const r=await api('/api/handraw/catalog');
+    if(!r.ok)throw new Error(r.error||'catalog failed');
+    const ss=$('handrawStyle'),cs=$('handrawColor');
+    if(ss){ss.innerHTML='<option value="">选择风格…</option>'+r.styles.map(s=>'<option value="'+esc(s.number)+'">'+esc(s.number+' · '+s.generation_name)+'</option>').join('')}
+    if(cs){cs.innerHTML='<option value="">无主题色</option>'+r.colors.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.id+' · '+(c.name_zh||c.name_en||''))+'</option>').join('')}
+    HANDRAW_LOADED=true;
+  }catch(e){$('handrawMsg').textContent='手绘风格加载失败：'+e.message}
+}
+async function applyHandraw(){
+  const style=$('handrawStyle')?.value;
+  if(!style){$('handrawMsg').textContent='请先选择手绘风格编号';return}
+  const theme=$('iprompt').value.trim();
+  try{
+    const r=await api('/api/handraw/prompt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({styles:[style],colors:[$('handrawColor').value].filter(Boolean),theme})});
+    if(!r.ok)throw new Error(r.error||'prompt failed');
+    $('iprompt').value=r.prompt;
+    $('handrawMsg').textContent='已套用 '+style+'；可直接生成或继续修改提示词';
+  }catch(e){$('handrawMsg').textContent='套用失败：'+e.message}
+}
+if($('handrawApply'))$('handrawApply').onclick=applyHandraw;
+
 function isImgPath(p){return /\.(png|jpe?g|webp)$/i.test(String(p||''))}
 function setRes(v){const s=$('resPreset');if(![...s.options].some(o=>o.value===v))return;s.value=v;if(s.onchange)s.onchange()}
 /* ---------- 生成 ---------- */
