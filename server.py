@@ -380,6 +380,20 @@ class ComfyService:
         except Exception as exc:  # noqa: BLE001
             return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
 
+    def tool_handraw_agent(self, styles: list[str], colors: list[str] | None = None,
+                          theme: str = "", lang: str = "zh", key: str = "") -> dict:
+        """调用 DeepSeek 基于 handraw-style 元数据优化提示词（需配置 Key）。"""
+        import agent as agent_mod
+        import handraw
+        try:
+            style = handraw.resolve_style(styles[0]) if styles else None
+            if not style:
+                return {"ok": False, "error": "style is required"}
+            color = handraw.resolve_color(colors[0]) if colors else None
+            return {"ok": True, **agent_mod.optimize(theme, style, color, lang, key)}
+        except Exception as exc:  # noqa: BLE001
+            return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+
     def tool_plan(self, template: str, params: dict | None = None) -> dict:
         workflow = self._workflow()
         params = dict(params or {})
@@ -1050,6 +1064,21 @@ def build_server() -> tuple[McpServer, ComfyService]:
             ["styles"],
         ),
     )(service.tool_handraw_prompt)
+
+    srv.tool(
+        "handraw_agent",
+        "调用 DeepSeek + handraw-style 优化生图提示词；Key 来自参数/环境变量/本地配置。",
+        args_schema(
+            {
+                "styles": {"type": "array", "items": {"type": "string"}},
+                "colors": {"type": "array", "items": {"type": "string"}},
+                "theme": {"type": "string"},
+                "lang": {"type": "string", "default": "zh"},
+                "key": {"type": "string", "description": "可选；留空使用已保存 Key"},
+            },
+            ["styles"],
+        ),
+    )(service.tool_handraw_agent)
 
     srv.tool(
         "plan",

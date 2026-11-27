@@ -15,6 +15,7 @@ PACKAGE_CANDIDATES = [
     Path(r"K:\CONFI\_handraw_tmp"),
 ]
 _cache: dict[str, object] = {}
+ZH_CACHE = ROOT / "data" / "handraw_zh.json"
 
 
 def package_root() -> Path | None:
@@ -43,15 +44,25 @@ def _load(name: str):
 
 def styles() -> list[dict]:
     out = []
+    zh = {}
+    try:
+        import json as _json
+        zh = _json.loads(ZH_CACHE.read_text(encoding="utf-8")) if ZH_CACHE.is_file() else {}
+    except Exception:
+        zh = {}
     for s in _load("styles.json"):
+        number = s.get("number")
+        group_zh = str(s.get("group") or "").split("/")[0].strip()
+        zh_name = str(zh.get(str(number)) or "").strip()
         out.append({
-            "number": s.get("number"),
+            "number": number,
             "group": s.get("group"),
             "reference": s.get("reference"),
             "generation_name": s.get("generation_name"),
+            "generation_name_zh": zh_name,
             "traits": s.get("traits"),
-            "group_zh": str(s.get("group") or "").split("/")[0].strip(),
-            "label_zh": f"{s.get('number')} · {str(s.get('group') or '').split('/')[0].strip()} · {s.get('generation_name')}",
+            "group_zh": group_zh,
+            "label_zh": f"{number} · {group_zh} · {(zh_name + '（' + str(s.get('generation_name')) + '）') if zh_name else s.get('generation_name')}",
         })
     return out
 

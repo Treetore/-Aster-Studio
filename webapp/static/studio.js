@@ -412,9 +412,42 @@ async function loadHandrawCatalog(){
     const ss=$('handrawStyle'),cs=$('handrawColor');
     if(ss){ss.innerHTML='<option value="">选择风格…</option>'+r.styles.map(s=>'<option value="'+esc(s.number)+'">'+esc(s.label_zh||s.number+' · '+s.generation_name)+'</option>').join('')}
     if(cs){cs.innerHTML='<option value="">无主题色</option>'+r.colors.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.id+' · '+(c.name_zh||c.name_en||''))+'</option>').join('')}
-    HANDRAW_LOADED=true;
+    HANDRAW_LOADED=true;refreshAgentStatus();
   }catch(e){$('handrawMsg').textContent='手绘风格加载失败：'+e.message}
 }
+async function refreshAgentStatus(){
+  try{const r=await api('/api/agent/status');if($('agentMsg'))$('agentMsg').textContent=r.configured?('DeepSeek 已配置：'+r.masked):'DeepSeek Key 未配置'}catch(e){}
+}
+async function saveDeepseekKey(){
+  const key=$('deepseekKey').value.trim();if(!key){$('agentMsg').textContent='请输入 DeepSeek API Key';return}
+  try{const r=await api('/api/agent/key',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key})});$('agentMsg').textContent='Key 已保存：'+(r.masked||'');$('deepseekKey').value=''}catch(e){$('agentMsg').textContent='保存失败：'+e.message}
+}
+async function translateHandraw(){
+  try{
+    if($('deepseekKey').value.trim())await saveDeepseekKey();
+    $('agentMsg').textContent='正在翻译 372 个风格名…';
+    const r=await api('/api/handraw/translate',{method:'POST'});
+    if(!r.ok)throw new Error(r.error||'翻译失败');
+    HANDRAW_LOADED=false;await loadHandrawCatalog();
+    $('agentMsg').textContent='风格名已翻译：'+r.translated+'/'+r.total;
+  }catch(e){$('agentMsg').textContent='翻译失败：'+e.message}
+}
+async function agentHandraw(){
+  const style=$('handrawStyle')?.value;
+  if(!style){$('agentMsg').textContent='请先选择手绘风格编号';return}
+  const theme=$('iprompt').value.trim();if(!theme){$('agentMsg').textContent='请先填写画面主题';return}
+  try{
+    if($('deepseekKey').value.trim())await saveDeepseekKey();
+    $('agentMsg').textContent='DeepSeek 正在优化提示词…';
+    const r=await api('/api/handraw/agent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({styles:[style],colors:[$('handrawColor').value].filter(Boolean),theme})});
+    if(!r.ok)throw new Error(r.error||'优化失败');
+    $('iprompt').value=r.prompt;$('agentMsg').textContent='DeepSeek 已优化提示词';
+  }catch(e){$('agentMsg').textContent='优化失败：'+e.message}
+}
+if($('deepseekSave'))$('deepseekSave').onclick=saveDeepseekKey;
+if($('handrawTranslate'))$('handrawTranslate').onclick=translateHandraw;
+if($('handrawAgent'))$('handrawAgent').onclick=agentHandraw;
+
 async function applyHandraw(){
   const style=$('handrawStyle')?.value;
   if(!style){$('handrawMsg').textContent='请先选择手绘风格编号';return}

@@ -265,6 +265,13 @@
               <button class="btn sm" id="handrawApply" type="button">优化提示词</button>
             </div>
             <div class="muted" id="handrawMsg" style="font-size:11px;margin-top:5px">选择风格与主题色后，将当前提示词作为主题，由 handraw-style 规则优化</div>
+            <div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap">
+              <input id="deepseekKey" type="password" placeholder="DeepSeek API Key（仅本地保存）" style="flex:1;min-width:180px">
+              <button class="btn xs" id="deepseekSave" type="button">保存 Key</button>
+              <button class="btn xs" id="handrawTranslate" type="button">翻译风格名</button>
+              <button class="btn xs" id="handrawAgent" type="button">DeepSeek 优化</button>
+            </div>
+            <div class="muted" id="agentMsg" style="font-size:11px;margin-top:5px"></div>
           </div>
           <div id="irefArea" class="hidden">
             <label class="lab">参考图（1–10 张，仅编辑模式）</label>

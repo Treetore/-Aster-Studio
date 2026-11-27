@@ -44,6 +44,7 @@ import workflow  # noqa: E402
 import notify
 import workspace
 import handraw
+import agent
 try:
     import i18n
 except Exception:  # noqa: BLE001
@@ -441,6 +442,57 @@ def api_handraw_prompt(req: HandrawReq) -> dict:
         return {"ok": True, **handraw.build_prompt(req.styles, req.colors, req.theme, req.lang)}
     except ValueError as exc:
         return {"ok": False, "error": str(exc)}
+
+
+class AgentKeyReq(BaseModel):
+    key: str = ""
+
+
+class HandrawAgentReq(BaseModel):
+    styles: list[str] = []
+    colors: list[str] = []
+    theme: str = ""
+    lang: str = "zh"
+    key: str = ""
+
+
+@app.get("/api/agent/status")
+def api_agent_status() -> dict:
+    return {"ok": True, "configured": bool(agent.get_key()), "masked": agent.masked()}
+
+
+@app.post("/api/agent/key")
+def api_agent_key(req: AgentKeyReq) -> dict:
+    agent.save_key(req.key)
+    return {"ok": True, "configured": bool(agent.get_key()), "masked": agent.masked()}
+
+
+@app.delete("/api/agent/key")
+def api_agent_key_clear() -> dict:
+    agent.clear_key()
+    return {"ok": True, "configured": False}
+
+
+@app.post("/api/handraw/agent")
+def api_handraw_agent(req: HandrawAgentReq) -> dict:
+    try:
+        style = handraw.resolve_style(req.styles[0]) if req.styles else None
+        if not style:
+            return {"ok": False, "error": "请选择风格编号"}
+        color = handraw.resolve_color(req.colors[0]) if req.colors else None
+        result = agent.optimize(req.theme, style, color, req.lang, req.key)
+        return {"ok": True, **result}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+
+
+@app.post("/api/handraw/translate")
+def api_handraw_translate() -> dict:
+    try:
+        items = [{"number": s["number"], "name": s["generation_name"]} for s in handraw.styles()]
+        return agent.translate_names(items)
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
 
 
 @app.get("/api/projects")
